@@ -1,0 +1,9 @@
+D:\Chirchiq_ELSTAN\UIgpt\UIgpt\bin\Debug\UIgpt.exe.config
+D:\Chirchiq_ELSTAN\UIgpt\UIgpt\bin\Debug\UIgpt.exe
+D:\Chirchiq_ELSTAN\UIgpt\UIgpt\bin\Debug\UIgpt.pdb
+D:\Chirchiq_ELSTAN\UIgpt\UIgpt\obj\Debug\UIgpt.MainForm.resources
+D:\Chirchiq_ELSTAN\UIgpt\UIgpt\obj\Debug\UIgpt.Properties.Resources.resources
+D:\Chirchiq_ELSTAN\UIgpt\UIgpt\obj\Debug\ElstanLab.csproj.GenerateResource.Cache
+D:\Chirchiq_ELSTAN\UIgpt\UIgpt\obj\Debug\UIgpt.exe
+D:\Chirchiq_ELSTAN\UIgpt\UIgpt\obj\Debug\UIgpt.pdb
+D:\Chirchiq_ELSTAN\UIgpt\UIgpt\obj\Debug\ElstanLab.csprojResolveAssemblyReference.cache
