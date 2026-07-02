@@ -19,7 +19,7 @@ namespace UIgpt
     {
         CheckBox chkAuto;
         ToolStripComboBox cmbPorts;
-
+        
 
         public MainForm()
         {
@@ -31,6 +31,7 @@ namespace UIgpt
             //new RatioPageBuilder(tabRatio);
             /////////////////////////
             new DebugPageBuilder(tabOther);
+            new RatioPageBuilder(tabRatio);
             //////////////status strip and  com port
             CreateStatusCheckbox();
             LoadPorts();
@@ -223,10 +224,10 @@ namespace UIgpt
 
         private void tabMain_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (tabMain.SelectedTab == tabRatio)
-            {
-                new RatioPageBuilder(tabRatio);
-            }
+          //  if (tabMain.SelectedTab == tabRatio)
+          //  {
+          //      new RatioPageBuilder(tabRatio);
+          //  }
         }
     }
 }

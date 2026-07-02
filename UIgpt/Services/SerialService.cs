@@ -129,8 +129,9 @@ namespace ElstanLab.Services
 
                         await Task.Delay(500);
                     }
-                    catch
+                    catch (Exception ex)
                     {
+                        System.Windows.Forms.MessageBox.Show(ex.ToString());
                         Disconnect();
                     }
                 }
@@ -159,8 +160,9 @@ namespace ElstanLab.Services
                     ModeChanged?.Invoke(CurrentMode);
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                System.Windows.Forms.MessageBox.Show(ex.ToString());
             }
         }
 

@@ -37,6 +37,11 @@ namespace ElstanLab.Pages.RatioPage
 
         private RatioRealtimeData currentData = new RatioRealtimeData();
 
+        private int lastHvCount = -1;
+        private int lastLvCount = -1;
+
+        private double lastHvStep = -999;
+        private double lastLvStep = -999;
         //------------------------------------------------
         // UI
         //------------------------------------------------
@@ -614,10 +619,8 @@ namespace ElstanLab.Pages.RatioPage
 
         private void LoadPositions()
         {
-            //------------------------------------------------
-            // Временно тест
-            //------------------------------------------------
-            //positions = RatioPositionGenerator.Generate(5,2.5,0,0);
+
+            grid.Rows.Clear();
 
             //////////////////////////////////////////////////
             // Passport values
@@ -635,8 +638,7 @@ namespace ElstanLab.Pages.RatioPage
             // Generate
             //////////////////////////////////////////////////
 
-            positions =
-                RatioPositionGenerator.Generate(
+            positions = RatioPositionGenerator.Generate(
                     hvCount,
                     hvStep,
                     lvCount,
@@ -684,8 +686,44 @@ namespace ElstanLab.Pages.RatioPage
 
         private void OnDataUpdated(MeterPacket p)
         {
+
             if (grid.CurrentRow == null)
                 return;
+            
+            if (page.InvokeRequired)
+            {
+                page.BeginInvoke((Action)(() =>
+                {
+                    OnDataUpdated(p);
+                }));
+
+                return;
+            }
+
+            if (((TabControl)page.Parent).SelectedTab != page) return;
+
+            int hvCount = GetInt("numHVTapCount");
+            int lvCount = GetInt("numLVTapCount");
+
+            double hvStep = GetDouble("percHV");
+            double lvStep = GetDouble("percLV");
+
+            bool changed =
+                   hvCount != lastHvCount
+                || lvCount != lastLvCount
+                || hvStep != lastHvStep
+                || lvStep != lastLvStep;
+
+            if (changed)
+            {
+                lastHvCount = hvCount;
+                lastLvCount = lvCount;
+
+                lastHvStep = hvStep;
+                lastLvStep = lvStep;
+
+                LoadPositions();
+            }
 
             double hvPercent = 0;
             double lvPercent = 0;
@@ -703,20 +741,7 @@ namespace ElstanLab.Pages.RatioPage
                  baseLv,
                  hvPercent,
                  lvPercent);
-
             
-
-            if (page.InvokeRequired)
-            {
-                page.BeginInvoke((Action)(() =>
-                {
-                    OnDataUpdated(p);
-                }));
-
-                return;
-            }
-
-
             //////////////////////////////////////////////////
             // ВН
             //////////////////////////////////////////////////
@@ -892,6 +917,8 @@ namespace ElstanLab.Pages.RatioPage
             if (grid.CurrentRow == null)
                 return;
 
+            //LoadPositions();
+
             DataGridViewRow row = grid.CurrentRow;
 
             row.Cells["Ka"].Value
@@ -924,14 +951,11 @@ namespace ElstanLab.Pages.RatioPage
 
             int value =  (int)tb.Value;
 
-           // int.TryParse(tb.Value., out value);
-
             return value;
         }
 
         private double GetDouble(string controlName)
         {
-            //TextBox tb = ControlRegistry.Get<TextBox>(controlName);
             NumericUpDown tb = ControlRegistry.Get<NumericUpDown>(controlName);
 
             double value = 0;
