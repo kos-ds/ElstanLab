@@ -171,7 +171,7 @@ namespace ElstanLab.UI
                 },
                            
             
-                new FieldInfo(
+               /* new FieldInfo(
                     "Положение ПБВ/РПН",
                     "cmbHVTapPosition",
                     FieldType.ComboBox)
@@ -183,17 +183,29 @@ namespace ElstanLab.UI
                         "0%",
                         "+2.5%",
                         "+5%"
-                    }
+                    },
+                    DefaultValue = 0
                 },
-            
+            */
                 new FieldInfo(
-                    "Количество ответвлений",
+                    "Количество положений ВН",
                     "numHVTapCount",
                     FieldType.Numeric)
                 {
                     DecimalPlaces = 0,
                     Maximum = 99,
-                    Increment = 1
+                    Increment = 1,
+                    DefaultValue = 1
+                },
+
+                 new FieldInfo(
+                    "Шаг переключения, %",
+                    "percHV",
+                    FieldType.Numeric)
+                {
+                    DecimalPlaces = 1,
+                    Maximum = 100,
+                    Increment = 0.1M
                 }
              });
 
@@ -214,7 +226,7 @@ namespace ElstanLab.UI
                 },
             
                 
-                new FieldInfo(
+              /*  new FieldInfo(
                     "Положение ПБВ/РПН",
                     "cmbLVTapPosition",
                     FieldType.ComboBox)
@@ -228,15 +240,26 @@ namespace ElstanLab.UI
                         "+5%"
                     }
                 },
-            
+            */
                 new FieldInfo(
-                    "Количество ответвлений",
+                    "Количество положений НН",
                     "numLVTapCount",
                     FieldType.Numeric)
                 {
                     DecimalPlaces = 0,
                     Maximum = 99,
-                    Increment = 1
+                    Increment = 1,
+                    DefaultValue = 1
+                },
+
+                new FieldInfo(
+                    "Шаг переключения, %",
+                    "percLV",
+                    FieldType.Numeric)
+                {
+                    DecimalPlaces = 1,
+                    Maximum = 100,
+                    Increment = 0.1M
                 }
             });
 

@@ -73,8 +73,7 @@ namespace ElstanLab.UI
             {
                 case FieldType.TextBox:
 
-                    TextBox tb =
-                        ControlFactory.CreateTextBox();
+                    TextBox tb = ControlFactory.CreateTextBox();
 
                     tb.Name = field.Name;
 
@@ -84,32 +83,25 @@ namespace ElstanLab.UI
 
                 case FieldType.Numeric:
 
-                    NumericUpDown num =
-                        ControlFactory.CreateNumeric();
+                    NumericUpDown num = ControlFactory.CreateNumeric();
 
                     num.Name = field.Name;
 
-                    num.DecimalPlaces =
-                        field.DecimalPlaces;
+                    num.DecimalPlaces = field.DecimalPlaces;
 
-                    num.Minimum =
-                        field.Minimum;
+                    num.Minimum = field.Minimum;
 
-                    num.Maximum =
-                        field.Maximum;
+                    num.Maximum = field.Maximum;
 
-                    num.Increment =
-                        field.Increment;
+                    num.Increment = field.Increment;
 
-                    num.Value =
-                        field.DefaultValue;
+                    num.Value = field.DefaultValue;
 
                     return num;
 
                 case FieldType.ComboBox:
 
-                    ComboBox cb =
-                        ControlFactory.CreateCombo();
+                    ComboBox cb = ControlFactory.CreateCombo();
 
                     cb.Name = field.Name;
 
@@ -120,8 +112,7 @@ namespace ElstanLab.UI
 
                 case FieldType.Date:
 
-                    DateTimePicker dt =
-                        new DateTimePicker();
+                    DateTimePicker dt = new DateTimePicker();
 
                     //dt.Dock = DockStyle.Fill;
                     dt.Anchor = AnchorStyles.Left |AnchorStyles.Right | AnchorStyles.Top;

@@ -11,6 +11,7 @@ using ElstanLab.UI;
 using ElstanLab.Models;
 using ElstanLab.Services;
 using System.IO.Ports;
+using ElstanLab.Pages.RatioPage;
 
 namespace UIgpt
 {
@@ -27,6 +28,7 @@ namespace UIgpt
             PassportPageBuilder.Build(tabPassport);
             FieldBinder.BindCalculationEvents();
             TransformerCalculator.Calculate();
+            //new RatioPageBuilder(tabRatio);
             /////////////////////////
             new DebugPageBuilder(tabOther);
             //////////////status strip and  com port
@@ -212,6 +214,19 @@ namespace UIgpt
         private void toolStripStatusLabel3_Click(object sender, EventArgs e)
         {
 
+        }
+
+        private void statusStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        {
+
+        }
+
+        private void tabMain_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (tabMain.SelectedTab == tabRatio)
+            {
+                new RatioPageBuilder(tabRatio);
+            }
         }
     }
 }

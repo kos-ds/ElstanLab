@@ -56,15 +56,16 @@
             this.tabMain.Location = new System.Drawing.Point(0, 0);
             this.tabMain.Name = "tabMain";
             this.tabMain.SelectedIndex = 0;
-            this.tabMain.Size = new System.Drawing.Size(1184, 761);
+            this.tabMain.Size = new System.Drawing.Size(1184, 739);
             this.tabMain.TabIndex = 0;
+            this.tabMain.SelectedIndexChanged += new System.EventHandler(this.tabMain_SelectedIndexChanged);
             // 
             // tabPassport
             // 
             this.tabPassport.Location = new System.Drawing.Point(4, 22);
             this.tabPassport.Name = "tabPassport";
             this.tabPassport.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPassport.Size = new System.Drawing.Size(1176, 735);
+            this.tabPassport.Size = new System.Drawing.Size(1176, 713);
             this.tabPassport.TabIndex = 0;
             this.tabPassport.Text = "Паспорт изделия";
             this.tabPassport.UseVisualStyleBackColor = true;
@@ -75,7 +76,7 @@
             this.tabRatio.Location = new System.Drawing.Point(4, 22);
             this.tabRatio.Name = "tabRatio";
             this.tabRatio.Padding = new System.Windows.Forms.Padding(3);
-            this.tabRatio.Size = new System.Drawing.Size(1176, 735);
+            this.tabRatio.Size = new System.Drawing.Size(1176, 713);
             this.tabRatio.TabIndex = 1;
             this.tabRatio.Text = "КТР";
             this.tabRatio.UseVisualStyleBackColor = true;
@@ -84,7 +85,7 @@
             // 
             this.tabShortCircuit.Location = new System.Drawing.Point(4, 22);
             this.tabShortCircuit.Name = "tabShortCircuit";
-            this.tabShortCircuit.Size = new System.Drawing.Size(1176, 735);
+            this.tabShortCircuit.Size = new System.Drawing.Size(1176, 713);
             this.tabShortCircuit.TabIndex = 2;
             this.tabShortCircuit.Text = "Короткое замыкание";
             this.tabShortCircuit.UseVisualStyleBackColor = true;
@@ -93,7 +94,7 @@
             // 
             this.tabNoLoad.Location = new System.Drawing.Point(4, 22);
             this.tabNoLoad.Name = "tabNoLoad";
-            this.tabNoLoad.Size = new System.Drawing.Size(1176, 735);
+            this.tabNoLoad.Size = new System.Drawing.Size(1176, 713);
             this.tabNoLoad.TabIndex = 3;
             this.tabNoLoad.Text = "Холостой ход";
             this.tabNoLoad.UseVisualStyleBackColor = true;
@@ -102,7 +103,7 @@
             // 
             this.tabIVW.Location = new System.Drawing.Point(4, 22);
             this.tabIVW.Name = "tabIVW";
-            this.tabIVW.Size = new System.Drawing.Size(1176, 735);
+            this.tabIVW.Size = new System.Drawing.Size(1176, 713);
             this.tabIVW.TabIndex = 5;
             this.tabIVW.Text = "IVW";
             this.tabIVW.UseVisualStyleBackColor = true;
@@ -111,7 +112,7 @@
             // 
             this.tabOther.Location = new System.Drawing.Point(4, 22);
             this.tabOther.Name = "tabOther";
-            this.tabOther.Size = new System.Drawing.Size(1176, 735);
+            this.tabOther.Size = new System.Drawing.Size(1176, 713);
             this.tabOther.TabIndex = 6;
             this.tabOther.Text = "Дополнительно";
             this.tabOther.UseVisualStyleBackColor = true;
@@ -120,7 +121,7 @@
             // 
             this.tabReport.Location = new System.Drawing.Point(4, 22);
             this.tabReport.Name = "tabReport";
-            this.tabReport.Size = new System.Drawing.Size(1176, 735);
+            this.tabReport.Size = new System.Drawing.Size(1176, 713);
             this.tabReport.TabIndex = 7;
             this.tabReport.Text = "Отчет";
             this.tabReport.UseVisualStyleBackColor = true;
@@ -135,6 +136,7 @@
             this.statusStrip1.Size = new System.Drawing.Size(1184, 22);
             this.statusStrip1.TabIndex = 1;
             this.statusStrip1.Text = "statusStrip1";
+            this.statusStrip1.ItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.statusStrip1_ItemClicked);
             // 
             // lblConnection
             // 
@@ -156,8 +158,8 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSize = true;
             this.ClientSize = new System.Drawing.Size(1184, 761);
-            this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.tabMain);
+            this.Controls.Add(this.statusStrip1);
             this.MinimumSize = new System.Drawing.Size(1100, 700);
             this.Name = "MainForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
