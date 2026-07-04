@@ -199,15 +199,7 @@ namespace ElstanLab.Pages.RatioPage
             panel.ColumnCount = 2;//4
 
             panel.RowCount = 2;//1
-
-            /*panel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25));
-
-            panel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25));
-
-            panel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 35));
-
-            panel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 15));*/
-
+            
             panel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
 
             panel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
@@ -331,8 +323,7 @@ namespace ElstanLab.Pages.RatioPage
 
             t.RowCount = 2;
 
-            t.CellBorderStyle
-                = TableLayoutPanelCellBorderStyle.Single;
+            t.CellBorderStyle = TableLayoutPanelCellBorderStyle.Single;
 
             gb.Controls.Add(t);
 
@@ -361,8 +352,7 @@ namespace ElstanLab.Pages.RatioPage
 
             gb.Dock = DockStyle.Fill;
 
-            TableLayoutPanel t
-                = new TableLayoutPanel();
+            TableLayoutPanel t = new TableLayoutPanel();
 
             t.Dock = DockStyle.Fill;
 
@@ -423,7 +413,6 @@ namespace ElstanLab.Pages.RatioPage
             l.BackColor = Color.FromArgb(45, 45, 48);
 
             l.ForeColor = Color.White;
-
 
             t.Controls.Add(l, col, 0);
         }
@@ -519,7 +508,7 @@ namespace ElstanLab.Pages.RatioPage
 
             g.AllowUserToAddRows = false;
 
-            g.RowHeadersVisible = true;
+            g.RowHeadersVisible = false;
 
             g.EnableHeadersVisualStyles = false;
 
@@ -579,8 +568,6 @@ namespace ElstanLab.Pages.RatioPage
             {
                 c.ReadOnly = true;    
                 c.DefaultCellStyle.Font = new Font("Segoe UI", 10, FontStyle.Bold);
-
-
             }
 
             g.Columns["Hv"].ReadOnly = false;
@@ -606,9 +593,7 @@ namespace ElstanLab.Pages.RatioPage
 
             g.Columns["IEC"].FillWeight = 60;
 
-            g.RowTemplate.Height = 32;
-
-            
+            g.RowTemplate.Height = 32;            
 
             return g;
         }

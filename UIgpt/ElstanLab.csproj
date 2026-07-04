@@ -55,6 +55,8 @@
     <Compile Include="Models\LabMode.cs" />
     <Compile Include="Models\MeterPacket.cs" />
     <Compile Include="Models\ModeNames.cs" />
+    <Compile Include="Pages\NoLoadPage\NoLoadCalculator.cs" />
+    <Compile Include="Pages\NoLoadPage\NoLoadPageBuilder.cs" />
     <Compile Include="Pages\RatioPage\RatioCalculator.cs" />
     <Compile Include="Pages\RatioPage\RatioGridRow.cs" />
     <Compile Include="Pages\RatioPage\RatioMeasurement.cs" />
@@ -62,6 +64,8 @@
     <Compile Include="Pages\RatioPage\RatioPosition.cs" />
     <Compile Include="Pages\RatioPage\RatioPositionGenerator.cs" />
     <Compile Include="Pages\RatioPage\RatioTest.cs" />
+    <Compile Include="Pages\ShortCircuitPage\ShortCircuitCalculator.cs" />
+    <Compile Include="Pages\ShortCircuitPage\ShortCircuitPageBuilder.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\CRC16.cs" />

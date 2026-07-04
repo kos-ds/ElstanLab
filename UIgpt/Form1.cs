@@ -12,6 +12,8 @@ using ElstanLab.Models;
 using ElstanLab.Services;
 using System.IO.Ports;
 using ElstanLab.Pages.RatioPage;
+using ElstanLab.Pages.ShortCircuitPage;
+using ElstanLab.Pages.NoLoadPage;
 
 namespace UIgpt
 {
@@ -32,6 +34,8 @@ namespace UIgpt
             /////////////////////////
             new DebugPageBuilder(tabOther);
             new RatioPageBuilder(tabRatio);
+            new ShortCircuitPageBuilder(tabShortCircuit);
+            new NoLoadPageBuilder(tabNoLoad);
             //////////////status strip and  com port
             CreateStatusCheckbox();
             LoadPorts();

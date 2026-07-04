@@ -60,38 +60,20 @@ namespace ElstanLab.UI
             
                 new FieldInfo("Объект","txtObject",FieldType.TextBox),
             
-                new FieldInfo("Место установки","txtPlace",FieldType.TextBox),
-            
                 new FieldInfo("Дата испытания","dtTest",FieldType.Date),
             
                 new FieldInfo("Испытатель","txtEngineer",FieldType.TextBox),
-            
-                new FieldInfo("Примечание","txtNote",FieldType.MultiLine)
-            });
 
-            GroupBox gbPassport = ControlFactory.CreateGroup("Паспорт трансформатора");
-            GroupBoxBuilder.Build(gbPassport,
-
-            new FieldInfo[]
-            {
                 new FieldInfo(
-                    "Завод",
+                    "Завод изготовитель",
                     "txtFactory",
                     FieldType.TextBox)
                 {
                     DefaultText = "Elstan"
                 },
-            
-                new FieldInfo(
-                    "Тип",
-                    "txtType",
-                    FieldType.TextBox),
-            
-                new FieldInfo(
-                    "Серийный №",
-                    "txtSerial",
-                    FieldType.TextBox),
-            
+
+                
+
                 new FieldInfo(
                     "Год выпуска",
                     "numYear",
@@ -103,7 +85,26 @@ namespace ElstanLab.UI
                     Increment = 1,
                     DefaultValue = 2026
                 },
+
+                new FieldInfo("Примечание","txtNote",FieldType.MultiLine)
+            });
+
+            GroupBox gbPassport = ControlFactory.CreateGroup("Паспорт трансформатора");
+            GroupBoxBuilder.Build(gbPassport,
+
+            new FieldInfo[]
+            {
             
+                new FieldInfo(
+                    "Тип",
+                    "txtType",
+                    FieldType.TextBox),
+
+                new FieldInfo(
+                    "Серийный №",
+                    "txtSerial",
+                    FieldType.TextBox),
+
                 new FieldInfo(
                     "Мощность, кВА",
                     "numPower",
@@ -111,7 +112,8 @@ namespace ElstanLab.UI
                 {
                     DecimalPlaces = 1,
                     Maximum = 100000,
-                    Increment = 10
+                    Increment = 10,
+                    DefaultValue = 160
                 },
             
                 new FieldInfo(
@@ -124,7 +126,29 @@ namespace ElstanLab.UI
                     Increment = 1,
                     DefaultValue = 50
                 },
-            
+
+                new FieldInfo(
+                    "паспортное Uk, %",
+                    "UkPassport",
+                    FieldType.Numeric)
+                {
+                    DecimalPlaces = 1,
+                    Maximum = 1000,
+                    Increment = 1,
+                    DefaultValue = 4.5M
+                },
+
+                new FieldInfo(
+                    "паспортное Pk, Вт",
+                    "PkPassport",
+                    FieldType.Numeric)
+                {
+                    DecimalPlaces = 1,
+                    //Maximum = 1000,
+                    Increment = 1,
+                    DefaultValue = 5000
+                },
+
                 new FieldInfo(
                     "Схема соединения",
                     "cmbVector",
@@ -167,7 +191,8 @@ namespace ElstanLab.UI
                 {
                     DecimalPlaces = 2,
                     Maximum = 1000,
-                    Increment = 0.1M
+                    Increment = 0.1M,
+                    DefaultValue = 10
                 },
                            
             
@@ -222,7 +247,8 @@ namespace ElstanLab.UI
                 {
                     DecimalPlaces = 3,
                     Maximum = 1000,
-                    Increment = 0.1M
+                    Increment = 0.1M,
+                    DefaultValue = 0.4M
                 },
             
                 

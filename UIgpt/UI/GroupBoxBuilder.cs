@@ -125,12 +125,11 @@ namespace ElstanLab.UI
 
                 case FieldType.MultiLine:
 
-                    TextBox mt =
-                        ControlFactory.CreateTextBox();
+                    TextBox mt = ControlFactory.CreateTextBox();
 
                     mt.Multiline = true;
 
-                    mt.Height = 70;
+                    mt.Height = 60;
 
                     mt.ScrollBars = ScrollBars.Vertical;
 

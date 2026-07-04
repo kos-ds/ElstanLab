@@ -87,7 +87,7 @@
             this.tabShortCircuit.Name = "tabShortCircuit";
             this.tabShortCircuit.Size = new System.Drawing.Size(1176, 713);
             this.tabShortCircuit.TabIndex = 2;
-            this.tabShortCircuit.Text = "Короткое замыкание";
+            this.tabShortCircuit.Text = "Сопротивление и потери КЗ";
             this.tabShortCircuit.UseVisualStyleBackColor = true;
             // 
             // tabNoLoad
