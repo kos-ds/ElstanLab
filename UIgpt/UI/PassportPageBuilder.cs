@@ -41,7 +41,7 @@ namespace ElstanLab.UI
 
             title.Dock = DockStyle.Top;
 
-            title.Height = 45;
+            title.Height = 40;
 
             title.TextAlign = ContentAlignment.MiddleCenter;
 
@@ -62,8 +62,16 @@ namespace ElstanLab.UI
             
                 new FieldInfo("Дата испытания","dtTest",FieldType.Date),
             
-                new FieldInfo("Испытатель","txtEngineer",FieldType.TextBox),
+                new FieldInfo("Испытатель","txtEngineer",FieldType.TextBox),                
 
+                new FieldInfo("Примечание","txtNote",FieldType.MultiLine)
+            });
+
+            GroupBox gbPassport = ControlFactory.CreateGroup("Паспорт трансформатора");
+            GroupBoxBuilder.Build(gbPassport,
+
+            new FieldInfo[]
+            {
                 new FieldInfo(
                     "Завод изготовитель",
                     "txtFactory",
@@ -71,8 +79,6 @@ namespace ElstanLab.UI
                 {
                     DefaultText = "Elstan"
                 },
-
-                
 
                 new FieldInfo(
                     "Год выпуска",
@@ -86,15 +92,6 @@ namespace ElstanLab.UI
                     DefaultValue = 2026
                 },
 
-                new FieldInfo("Примечание","txtNote",FieldType.MultiLine)
-            });
-
-            GroupBox gbPassport = ControlFactory.CreateGroup("Паспорт трансформатора");
-            GroupBoxBuilder.Build(gbPassport,
-
-            new FieldInfo[]
-            {
-            
                 new FieldInfo(
                     "Тип",
                     "txtType",
@@ -127,27 +124,7 @@ namespace ElstanLab.UI
                     DefaultValue = 50
                 },
 
-                new FieldInfo(
-                    "паспортное Uk, %",
-                    "UkPassport",
-                    FieldType.Numeric)
-                {
-                    DecimalPlaces = 1,
-                    Maximum = 1000,
-                    Increment = 1,
-                    DefaultValue = 4.5M
-                },
-
-                new FieldInfo(
-                    "паспортное Pk, Вт",
-                    "PkPassport",
-                    FieldType.Numeric)
-                {
-                    DecimalPlaces = 1,
-                    //Maximum = 1000,
-                    Increment = 1,
-                    DefaultValue = 5000
-                },
+               
 
                 new FieldInfo(
                     "Схема соединения",
@@ -193,25 +170,8 @@ namespace ElstanLab.UI
                     Maximum = 1000,
                     Increment = 0.1M,
                     DefaultValue = 10
-                },
-                           
-            
-               /* new FieldInfo(
-                    "Положение ПБВ/РПН",
-                    "cmbHVTapPosition",
-                    FieldType.ComboBox)
-                {
-                    Items = new[]
-                    {
-                        "-5%",
-                        "-2.5%",
-                        "0%",
-                        "+2.5%",
-                        "+5%"
-                    },
-                    DefaultValue = 0
-                },
-            */
+                },     
+              
                 new FieldInfo(
                     "Количество положений ВН",
                     "numHVTapCount",
@@ -251,22 +211,6 @@ namespace ElstanLab.UI
                     DefaultValue = 0.4M
                 },
             
-                
-              /*  new FieldInfo(
-                    "Положение ПБВ/РПН",
-                    "cmbLVTapPosition",
-                    FieldType.ComboBox)
-                {
-                    Items = new[]
-                    {
-                        "-5%",
-                        "-2.5%",
-                        "0%",
-                        "+2.5%",
-                        "+5%"
-                    }
-                },
-            */
                 new FieldInfo(
                     "Количество положений НН",
                     "numLVTapCount",
@@ -304,6 +248,59 @@ namespace ElstanLab.UI
                 
             });
 
+            GroupBox gbPasp = ControlFactory.CreateGroup("Поверочные данные");
+
+            GroupBoxBuilder.Build(gbPasp,
+
+            new FieldInfo[]
+            {
+                new FieldInfo(
+                    "паспортное Ukз, %",
+                    "UkPassport",
+                    FieldType.Numeric)
+                {
+                    DecimalPlaces = 1,
+                    Maximum = 1000,
+                    Increment = 1,
+                    DefaultValue = 4.5M
+                },
+
+                new FieldInfo(
+                    "паспортное Pkз, Вт",
+                    "PkPassport",
+                    FieldType.Numeric)
+                {
+                    DecimalPlaces = 1,
+                    //Maximum = 1000,
+                    Increment = 1,
+                    DefaultValue = 5000
+                },
+
+                new FieldInfo(
+                    "паспортное Pхх, Вт",
+                    "P0Passp",
+                    FieldType.Numeric)
+                {
+                    DecimalPlaces = 1,
+                    //Maximum = 1000,
+                    Increment = 1,
+                    DefaultValue = 300
+                },
+
+                new FieldInfo(
+                    "паспортное Iхх, %",
+                    "I0Passp",
+                    FieldType.Numeric)
+                {
+                    DecimalPlaces = 1,
+                    Maximum = 100,
+                    Increment = 1,
+                    DefaultValue = 2
+                }
+
+
+            });
+
             table.Controls.Add(gbInfo, 0, 0);
 
             table.Controls.Add(gbPassport, 1, 0);
@@ -314,7 +311,9 @@ namespace ElstanLab.UI
 
             table.Controls.Add(gbCalc, 0, 2);
 
-            table.SetColumnSpan(gbCalc, 2);
+            table.Controls.Add(gbPasp, 1, 2);
+
+            //table.SetColumnSpan(gbCalc, 2);
         }
     }
 }

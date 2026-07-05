@@ -15,24 +15,11 @@ namespace ElstanLab.UI
                 Font = Theme.GroupFont,
                 BackColor = Theme.GroupBack,
                 //Padding = new Padding(10),
-                Padding = new Padding(10, 25, 10, 10),
+                Padding = new Padding(10, 3, 10, 10),
                 //Margin = new Padding(8)
-                Margin = new Padding(6)
+                Margin = new Padding(4)
             };
         }
-
-        public static Label CreateLabel1(string text)
-        {
-            return new Label()
-            {
-                Text = text,
-                Dock = DockStyle.Fill,
-                TextAlign = ContentAlignment.MiddleLeft,
-                Font = Theme.DefaultFont,
-                AutoSize = false
-            };
-        }
-        
 
         public static Label CreateLabel(string text)
         {

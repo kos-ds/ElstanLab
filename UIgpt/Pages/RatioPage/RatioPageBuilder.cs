@@ -46,9 +46,7 @@ namespace ElstanLab.Pages.RatioPage
         // UI
         //------------------------------------------------
 
-        private readonly TabPage page;
-
-        private TableLayoutPanel realtimePanel;
+        private readonly TabPage page;        
 
         private DataGridView grid;
 
@@ -133,18 +131,13 @@ namespace ElstanLab.Pages.RatioPage
 
             main.Dock = DockStyle.Fill;
 
-            main.RowCount = 3;
+            main.RowCount = 3;            
 
-            main.ColumnCount = 1;
+            main.RowStyles.Add(new RowStyle(SizeType.Percent, 30));
 
-            main.RowStyles.Add(
-                new RowStyle(SizeType.Percent, 30));
+            main.RowStyles.Add(new RowStyle(SizeType.Percent, 70));
 
-            main.RowStyles.Add(
-                new RowStyle(SizeType.Percent, 70));
-
-            main.RowStyles.Add(
-                new RowStyle(SizeType.Absolute, 50));
+            main.RowStyles.Add(new RowStyle(SizeType.Absolute, 50));
 
             page.Controls.Add(main);
 
@@ -152,9 +145,7 @@ namespace ElstanLab.Pages.RatioPage
             // Realtime panel
             //------------------------------------------------
 
-            realtimePanel = BuildRealtimePanel();
-
-            main.Controls.Add(realtimePanel, 0, 0);
+            main.Controls.Add(BuildRealtimePanel(), 0, 0);
 
             //------------------------------------------------
             // Grid
@@ -166,24 +157,19 @@ namespace ElstanLab.Pages.RatioPage
 
             //------------------------------------------------
             // Bottom panel
-            //------------------------------------------------
-
-            FlowLayoutPanel bottom = new FlowLayoutPanel();
-
-            bottom.Dock = DockStyle.Fill;
+            //------------------------------------------------            
 
             btnSnapshot = new Button();
 
             btnSnapshot.Text = "SNAPSHOT";
 
-            btnSnapshot.Width = 140;
-            btnSnapshot.Height = 35;
+            btnSnapshot.Dock = DockStyle.Fill;
+
+            btnSnapshot.Height = 40;
 
             btnSnapshot.Click += BtnSnapshot_Click;
 
-            bottom.Controls.Add(btnSnapshot);
-
-            main.Controls.Add(bottom, 0, 2);
+            main.Controls.Add(btnSnapshot, 0, 2);
         }
 
         //------------------------------------------------
@@ -269,8 +255,7 @@ namespace ElstanLab.Pages.RatioPage
 
             gb.Dock = DockStyle.Fill;
 
-            TableLayoutPanel t
-                = new TableLayoutPanel();
+            TableLayoutPanel t = new TableLayoutPanel();
 
             t.Dock = DockStyle.Fill;
 
@@ -901,9 +886,7 @@ namespace ElstanLab.Pages.RatioPage
         {
             if (grid.CurrentRow == null)
                 return;
-
-            //LoadPositions();
-
+            
             DataGridViewRow row = grid.CurrentRow;
 
             row.Cells["Ka"].Value

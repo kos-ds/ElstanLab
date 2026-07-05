@@ -287,10 +287,14 @@ namespace ElstanLab.Pages.ShortCircuitPage
 
             l.Text = "-";
 
-            l.Dock = DockStyle.Fill;
+            // l.Dock = DockStyle.Fill;
+
+            l.Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Bottom;
 
             l.TextAlign = ContentAlignment.MiddleCenter;
 
+            l.AutoSize = false;
+            
             l.Font
                 = new Font(
                     "Consolas",
@@ -528,106 +532,7 @@ namespace ElstanLab.Pages.ShortCircuitPage
             t.Controls.Add(lblCurrentPercent, 2, 1);
          
             return gb;
-        }
-
-        private GroupBox BuildExpectedGroup1()
-        {
-            GroupBox gb = new GroupBox();
-
-            gb.Text = "Режим испытания";
-
-            gb.Dock = DockStyle.Fill;
-
-            gb.Font = new Font("Segoe UI", 10, FontStyle.Bold);
-
-            TableLayoutPanel t = new TableLayoutPanel();
-
-            t.Dock = DockStyle.Fill;
-
-            t.ColumnCount = 2;
-
-            t.RowCount = 3;
-
-            t.CellBorderStyle = TableLayoutPanelCellBorderStyle.Single;
-
-            t.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 55));
-
-            t.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 45));
-
-            t.RowStyles.Add(new RowStyle(SizeType.Percent, 33));
-            t.RowStyles.Add(new RowStyle(SizeType.Percent, 33));
-            t.RowStyles.Add(new RowStyle(SizeType.Percent, 33));
-
-            gb.Controls.Add(t);
-
-            //////////////////////////////////////////////////
-            // Inom
-            //////////////////////////////////////////////////
-
-            t.Controls.Add(
-                new Label()
-                {
-                    Text = "Iном",
-                    Dock = DockStyle.Fill,
-                    TextAlign = ContentAlignment.MiddleLeft
-                },
-                0,
-                0);
-
-            Label lblInom =
-                CreateValueLabel();
-
-            lblInom.Name = "lblInom";
-
-            t.Controls.Add(lblInom, 1, 0);
-
-            //////////////////////////////////////////////////
-            // Uк expected
-            //////////////////////////////////////////////////
-
-            t.Controls.Add(
-                new Label()
-                {
-                    Text = "Uкз ожидаемое",
-                    Dock = DockStyle.Fill,
-                    TextAlign = ContentAlignment.MiddleLeft
-                },
-                0,
-                1);
-
-            Label lblUkExpected = CreateValueLabel();
-            
-            lblUkExpected.Name = "lblUkExpected";
-
-            t.Controls.Add(lblUkExpected, 1, 1);
-
-            //////////////////////////////////////////////////
-            // Current %
-            //////////////////////////////////////////////////
-
-            t.Controls.Add(
-                new Label()
-                {
-                    Text = "Ток %",
-                    Dock = DockStyle.Fill,
-                    TextAlign = ContentAlignment.MiddleLeft
-                },
-                0,
-                2);
-
-            lblCurrentPercent =
-                CreateValueLabel();
-
-            t.Controls.Add(
-                lblCurrentPercent,
-                1,
-                2);
-
-            
-
-            return gb;
-        }
-
+        }        
 
         private GroupBox BuildResultGroup()
         {
@@ -671,7 +576,7 @@ namespace ElstanLab.Pages.ShortCircuitPage
             // Corrected Uk
             //////////////////////////////////////////////////
 
-            t.Controls.Add(new Label() { Text = "Uk прив.", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter }, 0, 1);
+            t.Controls.Add(new Label() { Text = "Uk, %", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter }, 0, 1);
 
             lblUk1 = CreateValueLabel();
             t.Controls.Add(lblUk1, 1, 1);
@@ -689,7 +594,7 @@ namespace ElstanLab.Pages.ShortCircuitPage
             // Corrected Pk
             //////////////////////////////////////////////////
 
-            t.Controls.Add(new Label() {Text = "Pk прив.", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter}, 0, 2);
+            t.Controls.Add(new Label() {Text = "Pk, Вт", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter}, 0, 2);
 
             lblPtotal1 = CreateValueLabel();
             t.Controls.Add(lblPtotal1, 1, 2);
@@ -718,7 +623,6 @@ namespace ElstanLab.Pages.ShortCircuitPage
             g.RowHeadersVisible = false;
 
             g.EnableHeadersVisualStyles = false;
-
 
             g.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(45, 45, 48);
 
@@ -753,17 +657,11 @@ namespace ElstanLab.Pages.ShortCircuitPage
 
             g.Columns.Add("Xk", "Xk, Ом");
 
-            g.Columns.Add(
-                "Mode",
-                "Mode");
+            g.Columns.Add("Mode", "Mode");
 
-            g.Columns.Add(
-                "PkCorr, Вт",
-                "Pk corr");
+            g.Columns.Add("PkCorr, Вт", "Pk corr");
 
-            g.Columns.Add(
-                "UkCorr, %",
-                "Uk corr");
+            g.Columns.Add("UkCorr, %", "Uk corr");
 
             g.Columns.Add("IEC", "IEC");
 
@@ -823,7 +721,6 @@ namespace ElstanLab.Pages.ShortCircuitPage
             }
 
             if (((TabControl)page.Parent).SelectedTab != page) return;
-
 
             //////////////////////////////////////////////////
             // Voltage
