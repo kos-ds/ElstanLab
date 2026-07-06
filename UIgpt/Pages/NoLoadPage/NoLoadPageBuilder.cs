@@ -8,7 +8,7 @@ using ElstanLab.UI;
 
 namespace ElstanLab.Pages.NoLoadPage
 {
-    public class NoLoadSnapshot
+  /*  public class NoLoadSnapshot
     {
         //------------------------------------------------
         // Time
@@ -64,8 +64,10 @@ namespace ElstanLab.Pages.NoLoadPage
         //------------------------------------------------
 
         public bool Passed;
-    }
 
+        public int rowcheckid=0;
+    }
+*/
     public class NoLoadPageBuilder
     {
         //------------------------------------------------
@@ -110,13 +112,19 @@ namespace ElstanLab.Pages.NoLoadPage
 
         private Label lblDeltaU;
 
+        private Label test;
+
         //------------------------------------------------
         // Storage
         //------------------------------------------------
+        
+        private NoLoadSnapshot current = LabStorage.CurrentNoLoad;
 
-        private NoLoadSnapshot current = new NoLoadSnapshot();
+        private List<NoLoadSnapshot> snapshots = LabStorage.NoLoadSnapshots;
 
-        private readonly List<NoLoadSnapshot> snapshots = new List<NoLoadSnapshot>();
+        //   private NoLoadSnapshot current = new NoLoadSnapshot();
+
+        //   private readonly List<NoLoadSnapshot> snapshots = new List<NoLoadSnapshot>();
 
         //------------------------------------------------
         // ctor
@@ -168,8 +176,7 @@ namespace ElstanLab.Pages.NoLoadPage
 
             //////////////////////////////////////////////////
             // Snapshot
-            //////////////////////////////////////////////////
-
+            //////////////////////////////////////////////////      
             Button btnSnapshot = new Button();
 
             btnSnapshot.Text = "SNAPSHOT";
@@ -180,7 +187,24 @@ namespace ElstanLab.Pages.NoLoadPage
 
             btnSnapshot.Click += BtnSnapshot_Click;
 
-            main.Controls.Add(btnSnapshot, 0, 2);
+            TableLayoutPanel top = new TableLayoutPanel();
+
+            top.Dock = DockStyle.Fill;
+
+            top.ColumnCount = 2;
+
+            top.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 90));
+            top.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 10));
+
+            top.Controls.Add(btnSnapshot, 0, 0);
+
+            test = CreateValueLabel();
+
+            top.Controls.Add(test, 1, 0);
+
+            
+            //            main.Controls.Add(btnSnapshot, 0, 2);
+            main.Controls.Add(top, 0, 2);
         }
 
         private Label CreateValueLabel()
@@ -261,15 +285,19 @@ namespace ElstanLab.Pages.NoLoadPage
 
             g.Columns.Add("Uavg", "Uavg");
 
-            g.Columns.Add("Iavg", "I0 avg");
+            g.Columns.Add("Iavg", "I0 avg");                      
 
-            g.Columns.Add("I0", "I0 %");
+            g.Columns.Add("P0", "P0изм, Вт ");
 
-            g.Columns.Add("P0", "P0");
+            g.Columns.Add("I0", "I0изм, %");            
+
+            g.Columns.Add("P0res", "P0рез, %");
+
+            g.Columns.Add("I0res", "I0рез, %");
 
             g.Columns.Add("Cos", "Cosφ");
 
-            g.Columns.Add("IEC", "IEC");
+            g.Columns.Add("IEC", "Результат");
 
             foreach (DataGridViewColumn c in g.Columns)
             {
@@ -332,13 +360,17 @@ namespace ElstanLab.Pages.NoLoadPage
 
                 s.Iavg.ToString("F2"),
 
+                s.Ptotal.ToString("F0"),
+
                 s.I0.ToString("F2"),
 
-                s.Ptotal.ToString("F0"),
+                s.P0Otklon.ToString("F1"),
+
+                s.I0Otklon.ToString("F1"),                
 
                 s.CosPhi.ToString("F3"),
 
-                snapshots.Count.ToString("F0"),
+               // snapshots.Count.ToString("F0"),
 
                 s.Passed
                     ? "OK"
@@ -574,11 +606,12 @@ namespace ElstanLab.Pages.NoLoadPage
             if (e.RowIndex < 0 || e.ColumnIndex != 0)
                 return;
 
-            bool isChecked =
-                Convert.ToBoolean(g.Rows[e.RowIndex].Cells[0].Value);
+            bool isChecked = Convert.ToBoolean(g.Rows[e.RowIndex].Cells[0].Value);
 
             if (!isChecked)
                 return;
+
+            current.rowcheckid = e.RowIndex;
 
             foreach (DataGridViewRow row in g.Rows)
             {
@@ -718,6 +751,7 @@ namespace ElstanLab.Pages.NoLoadPage
             bool ok3 = Math.Abs(current.I0Otklon) <= 10;
             lblI0Otklon.ForeColor = ok3 ? Color.LimeGreen : Color.Red;
 
+            test.Text = current.rowcheckid.ToString("F0");
 
 
             //////////////////////////////////////////////////

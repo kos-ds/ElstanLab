@@ -21,7 +21,6 @@ namespace UIgpt
     {
         CheckBox chkAuto;
         ToolStripComboBox cmbPorts;
-        
 
         public MainForm()
         {
@@ -36,6 +35,10 @@ namespace UIgpt
             new RatioPageBuilder(tabRatio);
             new ShortCircuitPageBuilder(tabShortCircuit);
             new NoLoadPageBuilder(tabNoLoad);
+
+           // reportPage.PassportModel = PassportModel;
+
+          //  reportPage.NoLoadSnapshots = NoLoadSnapshots;
             //////////////status strip and  com port
             CreateStatusCheckbox();
             LoadPorts();

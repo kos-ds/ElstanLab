@@ -43,7 +43,8 @@ namespace ElstanLab.UI
             //////////////////////////////////////////////////
             // Состояния
             //////////////////////////////////////////////////
-
+            AddRow(table, "checked_noload");
+            AddRow(table, "checked_KZ");
             AddRow(table, "COMM1");
             AddRow(table, "COMM2");
 
@@ -132,7 +133,8 @@ namespace ElstanLab.UI
             //////////////////////////////////////////////////
             // Состояния
             //////////////////////////////////////////////////
-
+            SetValue("checked_noload", LabStorage.CurrentNoLoad.rowcheckid);
+            SetValue("checked_KZ", LabStorage.CurrentKz.rowcheckid);
             SetValue("COMM1", p.COMM1);
             SetValue("COMM2", p.COMM2);
 

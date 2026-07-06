@@ -7,3 +7,7 @@ D:\Chirchiq_ELSTAN\UIgpt\UIgpt\obj\Debug\ElstanLab.csproj.GenerateResource.Cache
 D:\Chirchiq_ELSTAN\UIgpt\UIgpt\obj\Debug\UIgpt.exe
 D:\Chirchiq_ELSTAN\UIgpt\UIgpt\obj\Debug\UIgpt.pdb
 D:\Chirchiq_ELSTAN\UIgpt\UIgpt\obj\Debug\ElstanLab.csprojResolveAssemblyReference.cache
+D:\Chirchiq_ELSTAN\UIgpt\UIgpt\bin\Debug\DocumentFormat.OpenXml.dll
+D:\Chirchiq_ELSTAN\UIgpt\UIgpt\bin\Debug\DocumentFormat.OpenXml.Framework.dll
+D:\Chirchiq_ELSTAN\UIgpt\UIgpt\bin\Debug\DocumentFormat.OpenXml.xml
+D:\Chirchiq_ELSTAN\UIgpt\UIgpt\bin\Debug\DocumentFormat.OpenXml.Framework.xml

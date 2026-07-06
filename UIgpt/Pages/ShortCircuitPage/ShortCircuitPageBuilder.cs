@@ -4,10 +4,11 @@ using System.Windows.Forms;
 using ElstanLab.Models;
 using ElstanLab.Services;
 using ElstanLab.UI;
+using System.Collections.Generic;
 
 namespace ElstanLab.Pages.ShortCircuitPage
 {
-    public class ShortCircuitSnapshot
+   /* public class ShortCircuitSnapshot
     {
         //------------------------------------------------
         // Time
@@ -22,8 +23,8 @@ namespace ElstanLab.Pages.ShortCircuitPage
         public double Uab;
         public double Ubc;
         public double Uca;
-
         public double Uavg;
+        public double deltaU;
 
         //------------------------------------------------
         // Currents
@@ -32,8 +33,8 @@ namespace ElstanLab.Pages.ShortCircuitPage
         public double Ia;
         public double Ib;
         public double Ic;
-
         public double Iavg;
+        public double deltaI;
 
         //------------------------------------------------
         // Power
@@ -42,7 +43,6 @@ namespace ElstanLab.Pages.ShortCircuitPage
         public double Pa;
         public double Pb;
         public double Pc;
-
         public double Ptotal;
 
         //------------------------------------------------
@@ -92,7 +92,7 @@ namespace ElstanLab.Pages.ShortCircuitPage
         public double UkOtklon;
         public double PkOtklon;
     }
-
+    */
 
     public class ShortCircuitPageBuilder
     {
@@ -104,9 +104,13 @@ namespace ElstanLab.Pages.ShortCircuitPage
 
         private DataGridView grid;
 
-        private ShortCircuitSnapshot currentData = new ShortCircuitSnapshot();
+        private ShortCircuitSnapshot currentData = LabStorage.CurrentKz;
 
- //       private readonly List<ShortCircuitSnapshot> snapshots = new List<ShortCircuitSnapshot>();
+        private List<ShortCircuitSnapshot> snapshots = LabStorage.KzSnapshots;
+
+        //private ShortCircuitSnapshot currentData = new ShortCircuitSnapshot();
+
+        //private readonly List<ShortCircuitSnapshot> snapshots = new List<ShortCircuitSnapshot>();
 
 
         //------------------------------------------------
@@ -699,6 +703,8 @@ namespace ElstanLab.Pages.ShortCircuitPage
             if (!isChecked)
                 return;
 
+            currentData.rowcheckid = e.RowIndex;
+
             foreach (DataGridViewRow row in g.Rows)
             {
                 if (row.Index != e.RowIndex)
@@ -795,11 +801,6 @@ namespace ElstanLab.Pages.ShortCircuitPage
             double inom = ShortCircuitCalculator.CalcNominalHVCurrent(powerKva, hvVoltage);
 
             double ukExpected = ShortCircuitCalculator.CalcExpectedUkVoltage(hvVoltage,4.5);
-
-            
-            //Label lblInom = page.Controls.Find("lblInom", true)[0] as Label;
-
-            //Label lblUkExpected =                page.Controls.Find(                    "lblUkExpected",                    true)[0] as Label;
             
             lblInom.Text = inom.ToString("F2") + " A";
 
@@ -891,8 +892,8 @@ namespace ElstanLab.Pages.ShortCircuitPage
             currentData.Uab = p.UL1_AB;
             currentData.Ubc = p.UL1_BC;
             currentData.Uca = p.UL1_CA;
-
             currentData.Uavg = uavg;
+            currentData.deltaU = uDelta;
 
             //////////////////////////////////////////////////
             // Currents
@@ -901,8 +902,8 @@ namespace ElstanLab.Pages.ShortCircuitPage
             currentData.Ia = p.I1_A;
             currentData.Ib = p.I1_B;
             currentData.Ic = p.I1_C;
-
             currentData.Iavg = iavg;
+            currentData.deltaI = iDelta;
 
             //////////////////////////////////////////////////
             // Power
@@ -930,17 +931,15 @@ namespace ElstanLab.Pages.ShortCircuitPage
             // Expected
             //////////////////////////////////////////////////
 
-            currentData.NominalCurrent
-                = inom;
+            currentData.NominalCurrent  = inom;
 
-            currentData.ExpectedUkVoltage
-                = ukExpected;
+            currentData.ExpectedUkVoltage = ukExpected;
 
             //////////////////////////////////////////////////
             // IEC
             //////////////////////////////////////////////////
 
-           // currentData.Passed = latrOk;
+            currentData.Passed = ok && ok1 && ok2 && ok3;
         }
 
         private void BtnSnapshot_Click(object sender,EventArgs e)
@@ -960,8 +959,8 @@ namespace ElstanLab.Pages.ShortCircuitPage
             s.Uab = currentData.Uab;
             s.Ubc = currentData.Ubc;
             s.Uca = currentData.Uca;
-
             s.Uavg = currentData.Uavg;
+            s.deltaU = currentData.deltaU;
 
             //////////////////////////////////////////////////
             // Currents
@@ -970,8 +969,8 @@ namespace ElstanLab.Pages.ShortCircuitPage
             s.Ia = currentData.Ia;
             s.Ib = currentData.Ib;
             s.Ic = currentData.Ic;
-
             s.Iavg = currentData.Iavg;
+            s.deltaI = currentData.deltaI;
 
             //////////////////////////////////////////////////
             // Power
@@ -980,7 +979,6 @@ namespace ElstanLab.Pages.ShortCircuitPage
             s.Pa = currentData.Pa;
             s.Pb = currentData.Pb;
             s.Pc = currentData.Pc;
-
             s.Ptotal = currentData.Ptotal;
 
             //////////////////////////////////////////////////
@@ -1013,21 +1011,18 @@ namespace ElstanLab.Pages.ShortCircuitPage
             // Recalc
             //////////////////////////////////////////////////
 
-            s.Recalculated
-                = currentData.Recalculated;
+            s.Recalculated = currentData.Recalculated;
 
-            s.CurrentPercent
-                = currentData.CurrentPercent;
+            s.CurrentPercent = currentData.CurrentPercent;
 
-            s.CorrectedLosses
-                = currentData.CorrectedLosses;
+            s.CorrectedLosses = currentData.CorrectedLosses;
 
-            s.CorrectedUkPercent
-                = currentData.CorrectedUkPercent;
+            s.CorrectedUkPercent = currentData.CorrectedUkPercent;
 
-            //////////////////////////////////////////////////
-            // Grid
-            //////////////////////////////////////////////////
+            s.UkPassp = currentData.UkPassp;
+            s.PkPassp = currentData.PkPassp;
+            s.UkOtklon = currentData.UkOtklon;
+            s.PkOtklon = currentData.PkOtklon;
 
             AddSnapshotToGrid(s);
         }
