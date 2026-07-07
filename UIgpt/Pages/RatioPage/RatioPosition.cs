@@ -33,11 +33,6 @@ namespace ElstanLab.Pages.RatioPage
 
         public double NominalRatio;
 
-        //------------------------------------------------
-        // Измерения
-        //------------------------------------------------
-
-        public List<RatioMeasurement> Measurements
-            = new List<RatioMeasurement>();
+      
     }
 }

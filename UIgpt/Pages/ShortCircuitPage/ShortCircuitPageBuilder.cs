@@ -667,7 +667,7 @@ namespace ElstanLab.Pages.ShortCircuitPage
 
             g.Columns.Add("UkCorr, %", "Uk corr");
 
-            g.Columns.Add("IEC", "IEC");
+            g.Columns.Add("IEC", "Результат");
 
             foreach (DataGridViewColumn c in g.Columns)
             {
@@ -1023,6 +1023,8 @@ namespace ElstanLab.Pages.ShortCircuitPage
             s.PkPassp = currentData.PkPassp;
             s.UkOtklon = currentData.UkOtklon;
             s.PkOtklon = currentData.PkOtklon;
+
+            snapshots.Add(s);
 
             AddSnapshotToGrid(s);
         }

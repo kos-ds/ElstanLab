@@ -63,16 +63,13 @@
     <Compile Include="Models\LabStorage.cs" />
     <Compile Include="Models\MeterPacket.cs" />
     <Compile Include="Models\ModeNames.cs" />
-    <Compile Include="Models\PassportModel.cs" />
     <Compile Include="Pages\NoLoadPage\NoLoadCalculator.cs" />
     <Compile Include="Pages\NoLoadPage\NoLoadPageBuilder.cs" />
     <Compile Include="Pages\RatioPage\RatioCalculator.cs" />
-    <Compile Include="Pages\RatioPage\RatioGridRow.cs" />
-    <Compile Include="Pages\RatioPage\RatioMeasurement.cs" />
     <Compile Include="Pages\RatioPage\RatioPageBuilder.cs" />
     <Compile Include="Pages\RatioPage\RatioPosition.cs" />
     <Compile Include="Pages\RatioPage\RatioPositionGenerator.cs" />
-    <Compile Include="Pages\RatioPage\RatioTest.cs" />
+    <Compile Include="Pages\ReportPage\ReportPageBuilder.cs" />
     <Compile Include="Pages\ShortCircuitPage\ShortCircuitCalculator.cs" />
     <Compile Include="Pages\ShortCircuitPage\ShortCircuitPageBuilder.cs" />
     <Compile Include="Program.cs" />
@@ -87,6 +84,7 @@
     <Compile Include="UI\DebugPageBuilder.cs" />
     <Compile Include="UI\FieldBinder.cs" />
     <Compile Include="UI\GroupBoxBuilder.cs" />
+    <Compile Include="UI\PassportPageBuilder2.cs" />
     <Compile Include="UI\PassportPageBuilder.cs" />
     <Compile Include="UI\Theme.cs" />
     <EmbeddedResource Include="Form1.resx">

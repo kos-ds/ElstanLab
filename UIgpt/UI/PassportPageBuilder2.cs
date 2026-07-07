@@ -1,11 +1,12 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
 using System.Windows.Forms;
 using ElstanLab.Themes;
 using ElstanLab.Models;
 
 namespace ElstanLab.UI
 {
-    public static class PassportPageBuilder
+    public static class PassportPageBuilder1
     {
         private static PassportModel passport =
             LabStorage.Passport;
@@ -54,21 +55,28 @@ namespace ElstanLab.UI
 
             page.Controls.Add(title);
 
-            GroupBox gbInfo = ControlFactory.CreateGroup("Основные сведения");
+            // =========================================================
+            // ОСНОВНЫЕ СВЕДЕНИЯ
+            // =========================================================
+
+            GroupBox gbInfo =
+                ControlFactory.CreateGroup("Основные сведения");
+
             GroupBoxBuilder.Build(gbInfo,
 
             new FieldInfo[]
             {
                 new FieldInfo("Заказчик","txtCustomer",FieldType.TextBox),
-            
+
                 new FieldInfo("Объект","txtObject",FieldType.TextBox),
-            
+
                 new FieldInfo("Дата испытания","dtTest",FieldType.Date),
-            
-                new FieldInfo("Испытатель","txtEngineer",FieldType.TextBox),                
+
+                new FieldInfo("Испытатель","txtEngineer",FieldType.TextBox),
 
                 new FieldInfo("Примечание","txtNote",FieldType.MultiLine)
             });
+
             TextBox txtCustomer =
                 ControlRegistry.Get<TextBox>("txtCustomer");
 
@@ -123,7 +131,13 @@ namespace ElstanLab.UI
                 passport.Note = txtNote.Text;
             };
 
-            GroupBox gbPassport = ControlFactory.CreateGroup("Паспорт трансформатора");
+            // =========================================================
+            // ПАСПОРТ
+            // =========================================================
+
+            GroupBox gbPassport =
+                ControlFactory.CreateGroup("Паспорт трансформатора");
+
             GroupBoxBuilder.Build(gbPassport,
 
             new FieldInfo[]
@@ -131,22 +145,12 @@ namespace ElstanLab.UI
                 new FieldInfo(
                     "Завод изготовитель",
                     "txtFactory",
-                    FieldType.TextBox)
-                {
-                    DefaultText = "Elstan"
-                },
+                    FieldType.TextBox),
 
                 new FieldInfo(
                     "Год выпуска",
                     "numYear",
-                    FieldType.Numeric)
-                {
-                    DecimalPlaces = 0,
-                    Minimum = 1950,
-                    Maximum = 2100,
-                    Increment = 1,
-                    DefaultValue = 2026
-                },
+                    FieldType.Numeric),
 
                 new FieldInfo(
                     "Тип",
@@ -161,26 +165,12 @@ namespace ElstanLab.UI
                 new FieldInfo(
                     "Мощность, кВА",
                     "numPower",
-                    FieldType.Numeric)
-                {
-                    DecimalPlaces = 1,
-                    Maximum = 100000,
-                    Increment = 10,
-                    DefaultValue = 160
-                },
-            
+                    FieldType.Numeric),
+
                 new FieldInfo(
                     "Частота, Гц",
                     "numFreq",
-                    FieldType.Numeric)
-                {
-                    DecimalPlaces = 1,
-                    Maximum = 1000,
-                    Increment = 1,
-                    DefaultValue = 50
-                },
-
-               
+                    FieldType.Numeric),
 
                 new FieldInfo(
                     "Схема соединения",
@@ -196,7 +186,7 @@ namespace ElstanLab.UI
                         "Yzn11"
                     }
                 },
-            
+
                 new FieldInfo(
                     "Охлаждение",
                     "cmbCooling",
@@ -298,45 +288,32 @@ namespace ElstanLab.UI
                 passport.Cooling = cmbCooling.Text;
             };
 
+            // =========================================================
+            // ВН
+            // =========================================================
 
-            GroupBox gbHV = ControlFactory.CreateGroup("ВН");
+            GroupBox gbHV =
+                ControlFactory.CreateGroup("ВН");
 
             GroupBoxBuilder.Build(gbHV,
 
-             new FieldInfo[]
-             {
+            new FieldInfo[]
+            {
                 new FieldInfo(
                     "Номинальное напряжение, кВ",
                     "numHVVoltage",
-                    FieldType.Numeric)
-                {
-                    DecimalPlaces = 2,
-                    Maximum = 1000,
-                    Increment = 0.1M,
-                    DefaultValue = 10
-                },     
-              
+                    FieldType.Numeric),
+
                 new FieldInfo(
                     "Количество положений ВН",
                     "numHVTapCount",
-                    FieldType.Numeric)
-                {
-                    DecimalPlaces = 0,
-                    Maximum = 99,
-                    Increment = 1,
-                    DefaultValue = 1
-                },
+                    FieldType.Numeric),
 
-                 new FieldInfo(
+                new FieldInfo(
                     "Шаг переключения, %",
                     "percHV",
                     FieldType.Numeric)
-                {
-                    DecimalPlaces = 1,
-                    Maximum = 100,
-                    Increment = 0.1M
-                }
-             });
+            });
 
             NumericUpDown numHVVoltage =
                 ControlRegistry.Get<NumericUpDown>("numHVVoltage");
@@ -370,8 +347,12 @@ namespace ElstanLab.UI
                 passport.HVPercent = (double)percHV.Value;
             };
 
+            // =========================================================
+            // НН
+            // =========================================================
 
-            GroupBox gbLV = ControlFactory.CreateGroup("НН");
+            GroupBox gbLV =
+                ControlFactory.CreateGroup("НН");
 
             GroupBoxBuilder.Build(gbLV,
 
@@ -380,34 +361,17 @@ namespace ElstanLab.UI
                 new FieldInfo(
                     "Номинальное напряжение, кВ",
                     "numLVVoltage",
-                    FieldType.Numeric)
-                {
-                    DecimalPlaces = 3,
-                    Maximum = 1000,
-                    Increment = 0.1M,
-                    DefaultValue = 0.4M
-                },
-            
+                    FieldType.Numeric),
+
                 new FieldInfo(
                     "Количество положений НН",
                     "numLVTapCount",
-                    FieldType.Numeric)
-                {
-                    DecimalPlaces = 0,
-                    Maximum = 99,
-                    Increment = 1,
-                    DefaultValue = 1
-                },
+                    FieldType.Numeric),
 
                 new FieldInfo(
                     "Шаг переключения, %",
                     "percLV",
                     FieldType.Numeric)
-                {
-                    DecimalPlaces = 1,
-                    Maximum = 100,
-                    Increment = 0.1M
-                }
             });
 
             NumericUpDown numLVVoltage =
@@ -442,22 +406,39 @@ namespace ElstanLab.UI
                 passport.LVPercent = (double)percLV.Value;
             };
 
-            GroupBox gbCalc = ControlFactory.CreateGroup("Расчетные данные");
+            // =========================================================
+            // РАСЧЕТНЫЕ
+            // =========================================================
+
+            GroupBox gbCalc =
+                ControlFactory.CreateGroup("Расчетные данные");
 
             GroupBoxBuilder.Build(gbCalc,
 
             new FieldInfo[]
             {
-                new FieldInfo("Коэффициент трансформации","txtRatio",FieldType.ReadOnly),
-            
-                new FieldInfo("Расчетный ток ВН","txtIHV",FieldType.ReadOnly),
-            
-                new FieldInfo("Расчетный ток НН","txtILV",FieldType.ReadOnly)
-            
-                
+                new FieldInfo(
+                    "Коэффициент трансформации",
+                    "txtRatio",
+                    FieldType.ReadOnly),
+
+                new FieldInfo(
+                    "Расчетный ток ВН",
+                    "txtIHV",
+                    FieldType.ReadOnly),
+
+                new FieldInfo(
+                    "Расчетный ток НН",
+                    "txtILV",
+                    FieldType.ReadOnly)
             });
 
-            GroupBox gbPasp = ControlFactory.CreateGroup("Поверочные данные");
+            // =========================================================
+            // ПОВЕРОЧНЫЕ
+            // =========================================================
+
+            GroupBox gbPasp =
+                ControlFactory.CreateGroup("Поверочные данные");
 
             GroupBoxBuilder.Build(gbPasp,
 
@@ -466,46 +447,22 @@ namespace ElstanLab.UI
                 new FieldInfo(
                     "паспортное Ukз, %",
                     "UkPassport",
-                    FieldType.Numeric)
-                {
-                    DecimalPlaces = 1,
-                    Maximum = 1000,
-                    Increment = 1,
-                    DefaultValue = 4.5M
-                },
+                    FieldType.Numeric),
 
                 new FieldInfo(
                     "паспортное Pkз, Вт",
                     "PkPassport",
-                    FieldType.Numeric)
-                {
-                    DecimalPlaces = 1,
-                    //Maximum = 1000,
-                    Increment = 1,
-                    DefaultValue = 5000
-                },
+                    FieldType.Numeric),
 
                 new FieldInfo(
                     "паспортное Pхх, Вт",
                     "P0Passp",
-                    FieldType.Numeric)
-                {
-                    DecimalPlaces = 1,
-                    //Maximum = 1000,
-                    Increment = 1,
-                    DefaultValue = 300
-                },
+                    FieldType.Numeric),
 
                 new FieldInfo(
                     "паспортное Iхх, %",
                     "I0Passp",
                     FieldType.Numeric)
-                {
-                    DecimalPlaces = 1,
-                    Maximum = 100,
-                    Increment = 1,
-                    DefaultValue = 2
-                }
             });
 
             NumericUpDown UkPassport =
@@ -551,6 +508,8 @@ namespace ElstanLab.UI
                 passport.I0Percent = (double)I0Passp.Value;
             };
 
+            // =========================================================
+
             table.Controls.Add(gbInfo, 0, 0);
 
             table.Controls.Add(gbPassport, 1, 0);
@@ -562,8 +521,6 @@ namespace ElstanLab.UI
             table.Controls.Add(gbCalc, 0, 2);
 
             table.Controls.Add(gbPasp, 1, 2);
-
-            //table.SetColumnSpan(gbCalc, 2);
         }
     }
 }

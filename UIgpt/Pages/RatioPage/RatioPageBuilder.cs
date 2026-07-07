@@ -8,34 +8,15 @@ using ElstanLab.UI;
 
 namespace ElstanLab.Pages.RatioPage
 {
-    public class RatioRealtimeData
-    {
-        public double HvAB;
-        public double HvBC;
-        public double HvCA;
-        public double HvAVG;
-
-        public double LvAB;
-        public double LvBC;
-        public double LvCA;
-        public double LvAVG;
-
-        public double KAB;
-        public double KBC;
-        public double KCA;
-
-        public double KAVG;
-
-        public double Dev;
-        public double Err;
-
-        public bool IEC;
-    }
-
+ 
     public class RatioPageBuilder
     {
 
-        private RatioRealtimeData currentData = new RatioRealtimeData();
+        //private RatioRealtimeData currentData = new RatioRealtimeData();
+
+        private RatioRealtimeData currentData = LabStorage.CurrentKtr;
+
+        private List<RatioRealtimeData> snapshots = LabStorage.KtrSnapshots;
 
         private int lastHvCount = -1;
         private int lastLvCount = -1;
@@ -98,8 +79,7 @@ namespace ElstanLab.Pages.RatioPage
         // Positions
         //------------------------------------------------
 
-        private List<RatioPosition> positions
-            = new List<RatioPosition>();
+        private List<RatioPosition> positions = new List<RatioPosition>();
 
         //------------------------------------------------
         // ctor
@@ -153,6 +133,8 @@ namespace ElstanLab.Pages.RatioPage
 
             grid = BuildGrid();
 
+            grid.CellClick += curgridind;
+
             main.Controls.Add(grid, 0, 1);
 
             //------------------------------------------------
@@ -172,6 +154,12 @@ namespace ElstanLab.Pages.RatioPage
             main.Controls.Add(btnSnapshot, 0, 2);
         }
 
+
+        private void curgridind(object sender, DataGridViewCellEventArgs e)
+        {
+            LabStorage.CurrentKtr.rowcheckid = e.RowIndex;
+        }
+            
         //------------------------------------------------
         // Realtime UI
         //------------------------------------------------
@@ -596,13 +584,13 @@ namespace ElstanLab.Pages.RatioPage
             // Passport values
             //////////////////////////////////////////////////
 
-            int hvCount = GetInt("numHVTapCount");
+            int hvCount = LabStorage.Passport.HVTapCount;// GetInt("numHVTapCount");
 
-            int lvCount = GetInt("numLVTapCount");
+            int lvCount = LabStorage.Passport.LVTapCount;//GetInt("numLVTapCount");
 
-            double hvStep = GetDouble("percHV");
+            double hvStep = LabStorage.Passport.HVPercent ; //GetDouble("percHV");
 
-            double lvStep = GetDouble("percLV");
+            double lvStep = LabStorage.Passport.LVPercent;//GetDouble("percLV");
 
             //////////////////////////////////////////////////
             // Generate
@@ -614,6 +602,12 @@ namespace ElstanLab.Pages.RatioPage
                     lvCount,
                     lvStep);
 
+            snapshots.Clear();
+
+            foreach (RatioPosition p in positions)
+            {
+                snapshots.Add(new RatioRealtimeData());
+            }
             //------------------------------------------------
             // Combo items
             //------------------------------------------------
@@ -705,6 +699,9 @@ namespace ElstanLab.Pages.RatioPage
             double baseHv = GetDouble("numHVVoltage");
 
             double baseLv = GetDouble("numLVVoltage");
+
+            currentData.HvPercent = hvPercent;
+            currentData.LvPercent = lvPercent;            
 
             double nominal = RatioCalculator.CalcNominalRatio(
                  baseHv,
@@ -813,7 +810,7 @@ namespace ElstanLab.Pages.RatioPage
             currentData.Dev = dev;
             currentData.Err = err;
 
-            currentData.IEC = ok;
+            currentData.Passed = ok;
         }
 
         //------------------------------------------------
@@ -889,6 +886,33 @@ namespace ElstanLab.Pages.RatioPage
             
             DataGridViewRow row = grid.CurrentRow;
 
+            snapshots[row.Index] = new RatioRealtimeData()
+            {
+                HvAB = currentData.HvAB,
+                HvBC = currentData.HvBC,
+                HvCA = currentData.HvCA,
+
+                HvAVG = currentData.HvAVG,
+
+                LvAB = currentData.LvAB,
+                LvBC = currentData.LvBC,
+                LvCA = currentData.LvCA,
+
+                LvAVG = currentData.LvAVG,
+
+                KAB = currentData.KAB,
+                KBC = currentData.KBC,
+                KCA = currentData.KCA,
+
+                KAVG = currentData.KAVG,
+
+                Dev = currentData.Dev,
+                Err = currentData.Err,
+                Passed = currentData.Passed,
+                HvPercent = currentData.HvPercent,
+                LvPercent = currentData.LvPercent
+            };
+
             row.Cells["Ka"].Value
                 = currentData.KAB.ToString("F3");
 
@@ -908,7 +932,7 @@ namespace ElstanLab.Pages.RatioPage
                 = currentData.Err.ToString("F3");
 
             row.Cells["IEC"].Value
-                = currentData.IEC
+                = currentData.Passed
                 ? "OK"
                 : "FAIL";
         }

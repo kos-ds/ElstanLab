@@ -45,6 +45,13 @@ namespace ElstanLab.UI
             //////////////////////////////////////////////////
             AddRow(table, "checked_noload");
             AddRow(table, "checked_KZ");
+            AddRow(table, "hvp");
+            AddRow(table, "lvp");
+            AddRow(table, "POW");
+            AddRow(table, "VN");
+            AddRow(table, "NN");
+
+
             AddRow(table, "COMM1");
             AddRow(table, "COMM2");
 
@@ -135,6 +142,13 @@ namespace ElstanLab.UI
             //////////////////////////////////////////////////
             SetValue("checked_noload", LabStorage.CurrentNoLoad.rowcheckid);
             SetValue("checked_KZ", LabStorage.CurrentKz.rowcheckid);
+            SetValue("hvp", LabStorage.CurrentKtr.HvPercent);
+            SetValue("lvp", LabStorage.KtrSnapshots[LabStorage.CurrentKtr.rowcheckid].HvAB); // CurrentKtr.LvPercent);
+            SetValue("POW", LabStorage.Passport.PowerKva);
+            SetValue("VN", LabStorage.Passport.HVVoltage);
+            SetValue("NN", LabStorage.Passport.LVVoltage);
+
+
             SetValue("COMM1", p.COMM1);
             SetValue("COMM2", p.COMM2);
 

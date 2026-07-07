@@ -14,6 +14,7 @@ using System.IO.Ports;
 using ElstanLab.Pages.RatioPage;
 using ElstanLab.Pages.ShortCircuitPage;
 using ElstanLab.Pages.NoLoadPage;
+using ElstanLab.Pages.ReportPage;
 
 namespace UIgpt
 {
@@ -29,16 +30,15 @@ namespace UIgpt
             PassportPageBuilder.Build(tabPassport);
             FieldBinder.BindCalculationEvents();
             TransformerCalculator.Calculate();
-            //new RatioPageBuilder(tabRatio);
             /////////////////////////
             new DebugPageBuilder(tabOther);
             new RatioPageBuilder(tabRatio);
             new ShortCircuitPageBuilder(tabShortCircuit);
             new NoLoadPageBuilder(tabNoLoad);
+            new ReportPageBuilder(tabReport);
+            // reportPage.PassportModel = PassportModel;
 
-           // reportPage.PassportModel = PassportModel;
-
-          //  reportPage.NoLoadSnapshots = NoLoadSnapshots;
+            //  reportPage.NoLoadSnapshots = NoLoadSnapshots;
             //////////////status strip and  com port
             CreateStatusCheckbox();
             LoadPorts();
