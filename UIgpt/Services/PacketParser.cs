@@ -1,156 +1,121 @@
 ﻿using System;
 using ElstanLab.Models;
+using UIgpt;
+using System.Drawing;
+
 
 namespace ElstanLab.Services
 {
     public static class PacketParser
     {
-        public static MeterPacket Parse(
-            string packet)
+        public const int PacketSize = 91;
+        public static event Action SnapshotRequested;
+
+        public static MeterPacket Parse(byte[] packet)
         {
-            try
+            if (packet == null)
+                return null;
+
+            if (packet.Length != PacketSize)
+                return null;
+
+            MeterPacket m = new MeterPacket();
+
+            //----------------------------------------------------
+            // Header
+            //----------------------------------------------------
+
+            if (packet[0] != 0x55 || packet[1] != 0xAA)
             {
-                //------------------------------------------------
-                // Проверка $
-                //------------------------------------------------
-
-                if (!packet.StartsWith("$"))
-                    return null;
-
-                //------------------------------------------------
-                // Удаляем $
-                //------------------------------------------------
-
-                packet = packet.Substring(1);
-
-                //------------------------------------------------
-                // Ищем CRC
-                //------------------------------------------------
-
-                int last =
-                    packet.LastIndexOf(';');
-
-                if (last <= 0)
-                    return null;
-
-                //------------------------------------------------
-                // DATA
-                //------------------------------------------------
-
-                string data = packet.Substring(0, last+1);
-
-                //------------------------------------------------
-                // CRC HEX
-                //------------------------------------------------
-
-                string crcHex = packet.Substring(last + 1).Trim();
-
-                //------------------------------------------------
-                // CRC CALC
-                //------------------------------------------------
-
-                ushort calc = CRC16.Compute(data);
-
-                ushort recv = Convert.ToUInt16(crcHex, 16);
-
-                //------------------------------------------------
-                // CRC ERROR
-                //------------------------------------------------
-
-                if (calc != recv)
-                    return null;
-
-                //------------------------------------------------
-                // SPLIT
-                //------------------------------------------------
-
-                string[] p =
-                    data.Split(';');
-
-                if (p.Length < 25)
-                    return null;
-
-                //------------------------------------------------
-
-                MeterPacket m = new MeterPacket();
-
-                //------------------------------------------------
-                // Прибор 1
-                //------------------------------------------------
-
-                m.U1_A = ToDouble(p[0]);
-                m.U1_B = ToDouble(p[1]);
-                m.U1_C = ToDouble(p[2]);
-
-                m.UL1_AB = ToDouble(p[3]);
-                m.UL1_BC = ToDouble(p[4]);
-                m.UL1_CA = ToDouble(p[5]);
-
-                m.I1_A = ToDouble(p[6]);
-                m.I1_B = ToDouble(p[7]);
-                m.I1_C = ToDouble(p[8]);
-
-                m.P1_A = ToDouble(p[9]);
-                m.P1_B = ToDouble(p[10]);
-                m.P1_C = ToDouble(p[11]);
-
-                m.PTOTAL = ToDouble(p[12]);
-
-                m.F1 = ToDouble(p[13]);
-
-                //------------------------------------------------
-                // Прибор 2
-                //------------------------------------------------
-
-                m.U2_A = ToDouble(p[14]);
-                m.U2_B = ToDouble(p[15]);
-                m.U2_C = ToDouble(p[16]);
-
-                m.UL2_AB = ToDouble(p[17]);
-                m.UL2_BC = ToDouble(p[18]);
-                m.UL2_CA = ToDouble(p[19]);
-
-                m.F2 = ToDouble(p[20]);
-
-                //------------------------------------------------
-                // COMM
-                //------------------------------------------------
-
-                m.COMM1 =
-                    p[21] == "1";
-
-                m.COMM2 =
-                    p[22] == "1";
-
-                //------------------------------------------------
-                // MODE
-                //------------------------------------------------
-
-                m.MODE =
-                    Convert.ToInt32(p[23]);
-
-                //------------------------------------------------
-                // SNAPSHOT
-                //------------------------------------------------
-
-                m.SNAPSHOT = p[24] == "1";
-
-                //------------------------------------------------
-
-                return m;
-            }
-            catch (Exception ex)
-            {
-                System.Windows.Forms.MessageBox.Show(ex.ToString());
+                LabStorage.labsett.status = false;
+                MainForm.Instance.SetStatus(" ● Измерители не отвечают", Color.Red);
                 return null;
             }
+
+            MainForm.Instance.SetStatus(" ● Данные актуальны", Color.Green);
+            //----------------------------------------------------
+            // CRC
+            //----------------------------------------------------
+
+            ushort crcCalc = CRC16.Compute2(packet, 0, 89);
+
+            ushort crcRecv =
+                (ushort)(packet[89] |
+                        (packet[90] << 8));
+
+            if (crcCalc != crcRecv)
+                return null;
+
+            //----------------------------------------------------
+
+            //MeterPacket m = new MeterPacket();
+
+            int p = 2;
+
+            //----------------------------------------------------
+            // Meter 1
+            //----------------------------------------------------
+
+            m.U1_A = ReadFloat(packet, ref p);
+            m.U1_B = ReadFloat(packet, ref p);
+            m.U1_C = ReadFloat(packet, ref p);
+
+            m.UL1_AB = ReadFloat(packet, ref p);
+            m.UL1_BC = ReadFloat(packet, ref p);
+            m.UL1_CA = ReadFloat(packet, ref p);
+
+            m.I1_A = ReadFloat(packet, ref p);
+            m.I1_B = ReadFloat(packet, ref p);
+            m.I1_C = ReadFloat(packet, ref p);
+
+            m.P1_A = ReadFloat(packet, ref p) * 1000.0;
+            m.P1_B = ReadFloat(packet, ref p) * 1000.0;
+            m.P1_C = ReadFloat(packet, ref p) * 1000.0;
+
+            m.PTOTAL = ReadFloat(packet, ref p) * 1000.0;
+
+            m.F1 = ReadFloat(packet, ref p);
+
+            //----------------------------------------------------
+            // Meter 2
+            //----------------------------------------------------
+
+            m.U2_A = ReadFloat(packet, ref p);
+            m.U2_B = ReadFloat(packet, ref p);
+            m.U2_C = ReadFloat(packet, ref p);
+
+            m.UL2_AB = ReadFloat(packet, ref p);
+            m.UL2_BC = ReadFloat(packet, ref p);
+            m.UL2_CA = ReadFloat(packet, ref p);
+
+            m.F2 = ReadFloat(packet, ref p);
+
+            //----------------------------------------------------
+
+            m.MODE = packet[p++];
+
+            m.SNAPSHOT = packet[p++] != 0;
+
+            m.Kct = packet[p++];
+
+            if (m.SNAPSHOT)
+            {
+                SnapshotRequested?.Invoke();
+            }
+            //----------------------------------------------------
+
+            return m;
         }
 
         //----------------------------------------------------
 
-        static double ToDouble(string s)
+        static float ReadFloat(byte[] data, ref int pos)
         {
-            return Convert.ToDouble(s) / 1000.0;
+            float value = BitConverter.ToSingle(data, pos);
+
+            pos += 4;
+
+            return value;
         }
     }
 }

@@ -18,6 +18,8 @@ namespace ElstanLab.Pages.RatioPage
 
         private List<RatioRealtimeData> snapshots = LabStorage.KtrSnapshots;
 
+        //string errdev = 
+
         private int lastHvCount = -1;
         private int lastLvCount = -1;
 
@@ -36,7 +38,7 @@ namespace ElstanLab.Pages.RatioPage
         //------------------------------------------------
         // Realtime labels
         //------------------------------------------------
-
+       
         //////////////////////////////////////////////////
         // ВН
         //////////////////////////////////////////////////
@@ -67,13 +69,22 @@ namespace ElstanLab.Pages.RatioPage
 
         private Label lblDelta;
 
+        private Label lblkNorma;
+        private Label lblkNominal;
+        private Label lblkIzmer;
+
+        private Label lblmejFNominal;
+        private Label lblmejFIzmer;
+        private Label lblmejFerr;
+
+
+
         //////////////////////////////////////////////////
         // IEC
         //////////////////////////////////////////////////
 
         private Label lblError;
-
-        private Label lblStatus;
+        
 
         //------------------------------------------------
         // Positions
@@ -113,9 +124,9 @@ namespace ElstanLab.Pages.RatioPage
 
             main.RowCount = 3;            
 
-            main.RowStyles.Add(new RowStyle(SizeType.Percent, 30));
+            main.RowStyles.Add(new RowStyle(SizeType.Percent, 35));
 
-            main.RowStyles.Add(new RowStyle(SizeType.Percent, 70));
+            main.RowStyles.Add(new RowStyle(SizeType.Percent, 65));
 
             main.RowStyles.Add(new RowStyle(SizeType.Absolute, 50));
 
@@ -304,7 +315,7 @@ namespace ElstanLab.Pages.RatioPage
             AddHeader(t, 1, "KBC");
             AddHeader(t, 2, "KCA");
             AddHeader(t, 3, "Kavg");
-            AddHeader(t, 4, "Δmax");
+            AddHeader(t, 4, "ΔKabc");
 
             lblKAB = AddValue(t, 0);
             lblKBC = AddValue(t, 1);
@@ -321,7 +332,9 @@ namespace ElstanLab.Pages.RatioPage
         {
             GroupBox gb = new GroupBox();
 
-            gb.Text = "IEC";
+            gb.Text = "Результаты испытания";
+
+            gb.Font = new Font("Segoe UI", 10, FontStyle.Bold);
 
             gb.Dock = DockStyle.Fill;
 
@@ -329,45 +342,59 @@ namespace ElstanLab.Pages.RatioPage
 
             t.Dock = DockStyle.Fill;
 
-            t.ColumnCount = 2;
+            t.ColumnCount = 5;
 
-            t.RowCount = 2;
+            t.RowCount = 3;
 
-            t.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
+            t.CellBorderStyle = TableLayoutPanelCellBorderStyle.Single;
 
-            t.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
+            t.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20));
+            t.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20));
+            t.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20));
+            t.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20));
+            t.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20));
 
-            t.RowStyles.Add(new RowStyle(SizeType.Percent, 50));
-
-            t.RowStyles.Add(new RowStyle(SizeType.Percent, 50));
+            t.RowStyles.Add(new RowStyle(SizeType.Percent, 30));
+            t.RowStyles.Add(new RowStyle(SizeType.Percent, 35));
+            t.RowStyles.Add(new RowStyle(SizeType.Percent, 35));
 
             gb.Controls.Add(t);
 
-            Label l1 = new Label();
-            l1.Text = "Error % (±0.5)";
-            l1.Dock = DockStyle.Fill;
-            l1.TextAlign = ContentAlignment.MiddleCenter;
-            l1.Font = new Font("Consolas",12,FontStyle.Bold);
+            t.Controls.Add(new Label() { Text = "Параметр", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter }, 0, 0);
+            t.Controls.Add(new Label() { Text = "Измерено", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter }, 1, 0);
+            t.Controls.Add(new Label() { Text = "Номинал", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter }, 2, 0);
+            t.Controls.Add(new Label() { Text = "Откл. , %", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter }, 3, 0);
+            t.Controls.Add(new Label() { Text = "Допуск, %", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter }, 4, 0);
+
+            t.Controls.Add(new Label() { Text = "Ктр", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter }, 0, 1);                        
+
+            lblkIzmer = CreateValueLabel();
+            t.Controls.Add(lblkIzmer, 1, 1);
+
+            lblkNominal = CreateValueLabel();
+            t.Controls.Add(lblkNominal, 2, 1);
 
             lblError = CreateValueLabel();
+            t.Controls.Add(lblError, 3, 1);
 
-            Label l2 = new Label();
-            l2.Text = "Status";
-            l2.Dock = DockStyle.Fill;
-            l2.TextAlign = ContentAlignment.MiddleCenter;
-            l2.Font = new Font("Consolas", 12, FontStyle.Bold);
+            lblkNorma = CreateValueLabel();
+            t.Controls.Add(lblkNorma, 4, 1);
 
-            lblStatus = CreateValueLabel();
 
-            t.Controls.Add(l1, 0, 0);
-            t.Controls.Add(lblError, 0, 1);
+            t.Controls.Add(new Label() { Text = "ΔKabc, %", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter }, 0, 2);
 
-            t.Controls.Add(l2, 1, 0);
-            t.Controls.Add(lblStatus, 1, 1);
+            lblmejFIzmer = CreateValueLabel();
+            t.Controls.Add(lblmejFIzmer, 1, 2);
+
+            lblmejFNominal = CreateValueLabel();
+            t.Controls.Add(lblmejFNominal, 2, 2);
+
+            lblmejFerr = CreateValueLabel();
+            t.Controls.Add(lblmejFerr, 4, 2);
 
             return gb;
         }
-
+             
         private void AddHeader(TableLayoutPanel t, int col, string text)
         {
             Label l = new Label();
@@ -383,9 +410,9 @@ namespace ElstanLab.Pages.RatioPage
                     "Segoe UI",
                     9,
                     FontStyle.Bold);
-            l.BackColor = Color.FromArgb(45, 45, 48);
+        //    l.BackColor = Color.FromArgb(45, 45, 48);
 
-            l.ForeColor = Color.White;
+        //    l.ForeColor = Color.White;
 
             t.Controls.Add(l, col, 0);
         }
@@ -535,7 +562,7 @@ namespace ElstanLab.Pages.RatioPage
 
             g.Columns.Add("Err", "Err %");
 
-            g.Columns.Add("IEC", "IEC");
+            g.Columns.Add("IEC", "Результат");
 
             foreach (DataGridViewColumn c in g.Columns)
             {
@@ -666,6 +693,8 @@ namespace ElstanLab.Pages.RatioPage
 
             if (((TabControl)page.Parent).SelectedTab != page) return;
 
+            LabStorage.labsett.sendData = "g";
+
             int hvCount = GetInt("numHVTapCount");
             int lvCount = GetInt("numLVTapCount");
 
@@ -692,6 +721,8 @@ namespace ElstanLab.Pages.RatioPage
             double hvPercent = 0;
             double lvPercent = 0;
 
+        //    errdev.Text = "Error % (±" + LabStorage.labsett.RatioDeviation.ToString("F1") + ")";
+
             double.TryParse(grid.CurrentRow.Cells["Hv"].Value?.ToString(), out hvPercent);
 
             double.TryParse(grid.CurrentRow.Cells["Lv"].Value?.ToString(), out lvPercent);
@@ -708,7 +739,8 @@ namespace ElstanLab.Pages.RatioPage
                  baseLv,
                  hvPercent,
                  lvPercent);
-            
+
+            lblkNominal.Text = nominal.ToString("F1");
             //////////////////////////////////////////////////
             // ВН
             //////////////////////////////////////////////////
@@ -753,7 +785,10 @@ namespace ElstanLab.Pages.RatioPage
 
             double kavg = RatioCalculator.CalcAverage(kab,kbc,kca);
 
-            
+            lblkIzmer.Text = kavg.ToString("F1");
+
+
+
 
             double dev =
                 RatioCalculator.CalcDeviationPercent(
@@ -769,23 +804,36 @@ namespace ElstanLab.Pages.RatioPage
             lblKAVG.Text = kavg.ToString("F3");
 
             lblDelta.Text = dev.ToString("F3") + " %";
+                        
+            lblmejFNominal.Text = LabStorage.labsett.RatioKdeviation.ToString("F1");
+            lblmejFIzmer.Text = dev.ToString("F1");
 
-            //////////////////////////////////////////////////
-            // IEC
-            //////////////////////////////////////////////////
+            lblkNorma.Text = LabStorage.labsett.RatioDeviation.ToString("F1");
+        //////////////////////////////////////////////////
+        // IEC
+        //////////////////////////////////////////////////
 
             //  lblError.Text = "0.00 %";
             double err = RatioCalculator.CalcErrorPercent(kavg, nominal);
-            lblError.Text = err.ToString("F3") + " %";
+            lblError.Text = err.ToString("F3") ;
 
             // bool ok = dev <= 0.5;
-            bool ok = Math.Abs(err) <= 0.5 && dev <= 0.5;
+            bool ok = Math.Abs(err) <= LabStorage.labsett.RatioDeviation; 
+            bool ok1 = dev <= LabStorage.labsett.RatioKdeviation;
 
-            lblStatus.Text = ok
+            lblDelta.ForeColor = ok
+                ? Color.LimeGreen
+                : Color.Red;
+
+            lblError.ForeColor = ok
+                ? Color.LimeGreen
+                : Color.Red;
+            
+            lblmejFerr.Text = ok1
                 ? "OK"
                 : "FAIL";
 
-            lblStatus.ForeColor = ok
+            lblmejFerr.ForeColor = ok1
                 ? Color.LimeGreen
                 : Color.Red;
             ///////////////////////////////////////////////////////
@@ -806,79 +854,15 @@ namespace ElstanLab.Pages.RatioPage
             currentData.KCA = kca;
 
             currentData.KAVG = kavg;
+            currentData.kNominal = nominal;
 
             currentData.Dev = dev;
             currentData.Err = err;
 
-            currentData.Passed = ok;
+            currentData.Passed = ok&&ok1;
         }
 
-        //------------------------------------------------
-        // Snapshot
-        //------------------------------------------------
-
-        /*private void BtnSnapshot_Click(object sender,EventArgs e)
-        {
-            if (grid.CurrentRow == null)
-                return;
-
-            MeterPacket p = DataModelService.CurrentPacket;
-
-            
-            double ka
-                = RatioCalculator.CalcKa(p);
-
-            double kb
-                = RatioCalculator.CalcKb(p);
-
-            double kc
-                = RatioCalculator.CalcKc(p);
-
-            double avg
-                = RatioCalculator.CalcAverage(
-                    ka,
-                    kb,
-                    kc);
-
-            double dev
-                = RatioCalculator.CalcDeviationPercent(
-                    ka,
-                    kb,
-                    kc,
-                    avg);
-
-            double err = 0.0;// RatioCalculator.CalcErrorPercent(avg, nominal);
-            //------------------------------------------------
-            // Fill row
-            //------------------------------------------------
-
-            DataGridViewRow row
-                = grid.CurrentRow;
-
-            row.Cells["Ka"].Value
-                = ka.ToString("F3");
-
-            row.Cells["Kb"].Value
-                = kb.ToString("F3");
-
-            row.Cells["Kc"].Value
-                = kc.ToString("F3");
-
-            row.Cells["Kavg"].Value
-                = avg.ToString("F3");
-
-            row.Cells["Dev"].Value
-                = dev.ToString("F3");
-
-            row.Cells["Err"].Value = err.ToString("F3");
-
-            row.Cells["IEC"].Value
-                = dev <= 0.5
-                ? "OK"
-                : "FAIL";
-        }
-        */
-
+        
         private void BtnSnapshot_Click(object sender, EventArgs e)
         {
             if (grid.CurrentRow == null)
@@ -905,6 +889,66 @@ namespace ElstanLab.Pages.RatioPage
                 KCA = currentData.KCA,
 
                 KAVG = currentData.KAVG,
+                kNominal = currentData.kNominal,
+
+                Dev = currentData.Dev,
+                Err = currentData.Err,
+                Passed = currentData.Passed,
+                HvPercent = currentData.HvPercent,
+                LvPercent = currentData.LvPercent
+            };
+
+            row.Cells["Ka"].Value
+                = currentData.KAB.ToString("F3");
+
+            row.Cells["Kb"].Value
+                = currentData.KBC.ToString("F3");
+
+            row.Cells["Kc"].Value
+                = currentData.KCA.ToString("F3");
+
+            row.Cells["Kavg"].Value
+                = currentData.KAVG.ToString("F3");
+
+            row.Cells["Dev"].Value
+                = currentData.Dev.ToString("F3");
+
+            row.Cells["Err"].Value
+                = currentData.Err.ToString("F3");
+
+            row.Cells["IEC"].Value
+                = currentData.Passed
+                ? "OK"
+                : "FAIL";
+        }
+
+        public void MakeSnapshot()
+        {
+            if (grid.CurrentRow == null)
+                return;
+
+            DataGridViewRow row = grid.CurrentRow;
+
+            snapshots[row.Index] = new RatioRealtimeData()
+            {
+                HvAB = currentData.HvAB,
+                HvBC = currentData.HvBC,
+                HvCA = currentData.HvCA,
+
+                HvAVG = currentData.HvAVG,
+
+                LvAB = currentData.LvAB,
+                LvBC = currentData.LvBC,
+                LvCA = currentData.LvCA,
+
+                LvAVG = currentData.LvAVG,
+
+                KAB = currentData.KAB,
+                KBC = currentData.KBC,
+                KCA = currentData.KCA,
+
+                KAVG = currentData.KAVG,
+                kNominal = currentData.kNominal,
 
                 Dev = currentData.Dev,
                 Err = currentData.Err,

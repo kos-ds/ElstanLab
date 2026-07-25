@@ -28,7 +28,7 @@
                     return "Отчет";
 
                 default:
-                    return "Неизвестно";
+                    return "Отключено";
             }
         }
     }

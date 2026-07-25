@@ -8,92 +8,7 @@ using System.Collections.Generic;
 
 namespace ElstanLab.Pages.ShortCircuitPage
 {
-   /* public class ShortCircuitSnapshot
-    {
-        //------------------------------------------------
-        // Time
-        //------------------------------------------------
-
-        public DateTime Time;
-
-        //------------------------------------------------
-        // Voltages
-        //------------------------------------------------
-
-        public double Uab;
-        public double Ubc;
-        public double Uca;
-        public double Uavg;
-        public double deltaU;
-
-        //------------------------------------------------
-        // Currents
-        //------------------------------------------------
-
-        public double Ia;
-        public double Ib;
-        public double Ic;
-        public double Iavg;
-        public double deltaI;
-
-        //------------------------------------------------
-        // Power
-        //------------------------------------------------
-
-        public double Pa;
-        public double Pb;
-        public double Pc;
-        public double Ptotal;
-
-        //------------------------------------------------
-        // Calculated
-        //------------------------------------------------
-
-        public double UkPercent;
-
-        public double Zk;
-
-        public double Rk;
-
-        public double Xk;
-
-        //------------------------------------------------
-        // Expected
-        //------------------------------------------------
-
-        public double NominalCurrent;
-
-        public double ExpectedUkVoltage;
-
-        //------------------------------------------------
-        // IEC
-        //------------------------------------------------
-
-        public bool Passed;
-
-        //////////////////////////////////////////////////
-        // Test mode
-        //////////////////////////////////////////////////
-
-        public bool Recalculated;
-
-        public double CurrentPercent;
-
-        //////////////////////////////////////////////////
-        // Corrected
-        //////////////////////////////////////////////////
-
-        public double CorrectedUkPercent;
-
-        public double CorrectedLosses;
-
-        public double UkPassp;
-        public double PkPassp;
-        public double UkOtklon;
-        public double PkOtklon;
-    }
-    */
-
+   
     public class ShortCircuitPageBuilder
     {
         //------------------------------------------------
@@ -107,10 +22,7 @@ namespace ElstanLab.Pages.ShortCircuitPage
         private ShortCircuitSnapshot currentData = LabStorage.CurrentKz;
 
         private List<ShortCircuitSnapshot> snapshots = LabStorage.KzSnapshots;
-
-        //private ShortCircuitSnapshot currentData = new ShortCircuitSnapshot();
-
-        //private readonly List<ShortCircuitSnapshot> snapshots = new List<ShortCircuitSnapshot>();
+        
 
 
         //------------------------------------------------
@@ -165,6 +77,8 @@ namespace ElstanLab.Pages.ShortCircuitPage
 
         private Label lblPkOtklon;
 
+        private Label lblSetCurrent;
+
         //------------------------------------------------
         // ctor
         //------------------------------------------------
@@ -189,11 +103,12 @@ namespace ElstanLab.Pages.ShortCircuitPage
 
             main.Dock = DockStyle.Fill;
 
-            main.RowCount = 2;
+            main.RowCount = 3;
 
             main.RowStyles.Add(new RowStyle(SizeType.Percent, 60));
 
             main.RowStyles.Add(new RowStyle(SizeType.Percent, 40));
+            main.RowStyles.Add(new RowStyle(SizeType.Absolute, 50));
 
             page.Controls.Add(main);
 
@@ -226,7 +141,27 @@ namespace ElstanLab.Pages.ShortCircuitPage
 
             btnSnapshot.Click += BtnSnapshot_Click;
 
-            page.Controls.Add(btnSnapshot);
+            //page.Controls.Add(btnSnapshot);
+
+            /////
+            TableLayoutPanel bott = new TableLayoutPanel();
+
+            bott.Dock = DockStyle.Fill;
+
+            bott.ColumnCount = 2;
+
+            bott.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 80));
+            bott.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20));
+
+            lblSetCurrent = CreateValueLabel();
+            
+            bott.Controls.Add(btnSnapshot, 0, 0);
+            bott.Controls.Add(lblSetCurrent, 1, 0);
+
+
+            main.Controls.Add(btnSnapshot, 0, 2);
+
+            //main.Controls.Add(bott, 0, 2);
         }
 
 
@@ -247,37 +182,14 @@ namespace ElstanLab.Pages.ShortCircuitPage
             top.RowStyles.Add(new RowStyle(SizeType.Percent, 33));
             top.RowStyles.Add(new RowStyle(SizeType.Percent, 33));
             
-            //////////////////////////////////////////////////
-            // Voltages
-            //////////////////////////////////////////////////
-
             top.Controls.Add(BuildVoltageGroup(),0,0);
-
-            //////////////////////////////////////////////////
-            // Currents
-            //////////////////////////////////////////////////
 
             top.Controls.Add(BuildCurrentGroup(),1,0);
 
-            //////////////////////////////////////////////////
-            // Power
-            //////////////////////////////////////////////////
-
             top.Controls.Add(BuildPowerGroup(),0,1);
 
-            //////////////////////////////////////////////////
-            // Calculations
-            //////////////////////////////////////////////////
-
             top.Controls.Add(BuildCalcGroup(),1,1);
-
-            //////////////////////////////////////////////////
-            // Expected
-            //////////////////////////////////////////////////
-            //GroupBox grpExpected = BuildExpectedGroup();
-            //top.Controls.Add(grpExpected, 0,2);
-            //top.SetColumnSpan(grpExpected, 2);
-
+            
             top.Controls.Add(BuildExpectedGroup(), 0, 2);
 
             top.Controls.Add(BuildResultGroup(), 1, 2);
@@ -340,7 +252,7 @@ namespace ElstanLab.Pages.ShortCircuitPage
             t.Controls.Add(new Label() { Text = "BC, В", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter }, 1, 0);
             t.Controls.Add(new Label() { Text = "CA, В", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter }, 2, 0);
             t.Controls.Add(new Label() { Text = "AVG, В", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter }, 3, 0);
-            t.Controls.Add(new Label() { Text = "ΔU, % (±2%)", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter }, 4, 0);
+            t.Controls.Add(new Label() { Text = "ΔU, %", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter }, 4, 0);
 
             lblUab = CreateValueLabel();
             lblUbc = CreateValueLabel();
@@ -389,7 +301,7 @@ namespace ElstanLab.Pages.ShortCircuitPage
             t.Controls.Add(new Label() { Text = "B, А", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter }, 1, 0);
             t.Controls.Add(new Label() { Text = "C, А", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter }, 2, 0);
             t.Controls.Add(new Label() { Text = "AVG, А", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter }, 3, 0);
-            t.Controls.Add(new Label() { Text = "ΔIб % (±2%)", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter }, 4, 0);
+            t.Controls.Add(new Label() { Text = "ΔIб, % ", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter }, 4, 0);
 
             lblIa = CreateValueLabel();
             lblIb = CreateValueLabel();
@@ -661,7 +573,7 @@ namespace ElstanLab.Pages.ShortCircuitPage
 
             g.Columns.Add("Xk", "Xk, Ом");
 
-            g.Columns.Add("Mode", "Mode");
+       //     g.Columns.Add("Mode", "Mode");
 
             g.Columns.Add("PkCorr, Вт", "Pk corr");
 
@@ -727,7 +639,16 @@ namespace ElstanLab.Pages.ShortCircuitPage
             }
 
             if (((TabControl)page.Parent).SelectedTab != page) return;
+            LabStorage.labsett.sendData = "c";
 
+            /*
+            CurrentTransformer ct = CurrentTransformerSelector.Get(LabStorage.Passport.IHV);
+            LabStorage.labsett.sendData = ct.Command;
+            lblSetCurrent.Text = "Установите ТТ в положение " + ct.Divider*5 + " А";
+            bool kctis = ct.Divider == p.Kct;
+
+            lblSetCurrent.ForeColor = kctis ? Color.LimeGreen : Color.Red;
+            */
             //////////////////////////////////////////////////
             // Voltage
             //////////////////////////////////////////////////
@@ -736,18 +657,15 @@ namespace ElstanLab.Pages.ShortCircuitPage
             lblUbc.Text = p.UL1_BC.ToString("F1");
             lblUca.Text = p.UL1_CA.ToString("F1");
 
-            double uavg =
-                ShortCircuitCalculator
-                .CalcVoltageAvg(p);
+            double uavg = ShortCircuitCalculator.CalcVoltageAvg(p);
 
-            lblUavg.Text =
-                uavg.ToString("F1");
+            lblUavg.Text = uavg.ToString("F1");
 
             double uDelta = ShortCircuitCalculator.CalcVoltageDelta(p);
 
             lblUdelta.Text = uDelta.ToString("F2");
 
-            bool ok1 = Math.Abs(uDelta) <= 2;
+            bool ok1 = Math.Abs(uDelta) <= LabStorage.labsett.ShortCircuitVoltageDelta;
 
             lblUdelta.ForeColor = ok1
                 ? Color.LimeGreen
@@ -770,7 +688,7 @@ namespace ElstanLab.Pages.ShortCircuitPage
 
             lblIdelta.Text = iDelta.ToString("F2");
 
-            bool ok = Math.Abs(iDelta) <= 2;
+            bool ok = Math.Abs(iDelta) <= LabStorage.labsett.ShortCircuitCurrentDelta; ;
 
             lblIdelta.ForeColor = ok
                 ? Color.LimeGreen
@@ -850,9 +768,9 @@ namespace ElstanLab.Pages.ShortCircuitPage
             lblUkOtklon.Text = currentData.UkOtklon.ToString("F1");
             lblPkOtklon.Text = currentData.PkOtklon.ToString("F1");
 
-            bool ok2 = Math.Abs(currentData.UkOtklon) <= 10;
+            bool ok2 = Math.Abs(currentData.UkOtklon) <= LabStorage.labsett.ShortCircuitUkDeviation;
             lblUkOtklon.ForeColor = ok2 ? Color.LimeGreen: Color.Red;
-            bool ok3 = Math.Abs(currentData.PkOtklon) <= 10;
+            bool ok3 = Math.Abs(currentData.PkOtklon) <= LabStorage.labsett.ShortCircuitPkDeviation;
             lblPkOtklon.ForeColor = ok3 ? Color.LimeGreen : Color.Red;
 
             //////////////////////////////////////////////////
@@ -863,9 +781,7 @@ namespace ElstanLab.Pages.ShortCircuitPage
 
             bool recalc = currentPercent < 95.0;
             
-            lblCurrentPercent.Text =
-                currentPercent.ToString("F1")
-                + " %";
+            lblCurrentPercent.Text = currentPercent.ToString("F1") + " %";
 
             //////////////////////////////////////////////////
             // Store recalculation data
@@ -1029,6 +945,93 @@ namespace ElstanLab.Pages.ShortCircuitPage
             AddSnapshotToGrid(s);
         }
 
+        public void MakeSnapshot()
+        {
+            //////////////////////////////////////////////////
+            // Clone
+            //////////////////////////////////////////////////
+
+            ShortCircuitSnapshot s = new ShortCircuitSnapshot();
+
+            s.Time = currentData.Time;
+
+            //////////////////////////////////////////////////
+            // Voltages
+            //////////////////////////////////////////////////
+
+            s.Uab = currentData.Uab;
+            s.Ubc = currentData.Ubc;
+            s.Uca = currentData.Uca;
+            s.Uavg = currentData.Uavg;
+            s.deltaU = currentData.deltaU;
+
+            //////////////////////////////////////////////////
+            // Currents
+            //////////////////////////////////////////////////
+
+            s.Ia = currentData.Ia;
+            s.Ib = currentData.Ib;
+            s.Ic = currentData.Ic;
+            s.Iavg = currentData.Iavg;
+            s.deltaI = currentData.deltaI;
+
+            //////////////////////////////////////////////////
+            // Power
+            //////////////////////////////////////////////////
+
+            s.Pa = currentData.Pa;
+            s.Pb = currentData.Pb;
+            s.Pc = currentData.Pc;
+            s.Ptotal = currentData.Ptotal;
+
+            //////////////////////////////////////////////////
+            // Calculated
+            //////////////////////////////////////////////////
+
+            s.UkPercent = currentData.UkPercent;
+
+            s.Zk = currentData.Zk;
+
+            s.Rk = currentData.Rk;
+
+            s.Xk = currentData.Xk;
+
+            //////////////////////////////////////////////////
+            // Expected
+            //////////////////////////////////////////////////
+
+            s.NominalCurrent = currentData.NominalCurrent;
+
+            s.ExpectedUkVoltage = currentData.ExpectedUkVoltage;
+
+            //////////////////////////////////////////////////
+            // IEC
+            //////////////////////////////////////////////////
+
+            s.Passed = currentData.Passed;
+
+            //////////////////////////////////////////////////
+            // Recalc
+            //////////////////////////////////////////////////
+
+            s.Recalculated = currentData.Recalculated;
+
+            s.CurrentPercent = currentData.CurrentPercent;
+
+            s.CorrectedLosses = currentData.CorrectedLosses;
+
+            s.CorrectedUkPercent = currentData.CorrectedUkPercent;
+
+            s.UkPassp = currentData.UkPassp;
+            s.PkPassp = currentData.PkPassp;
+            s.UkOtklon = currentData.UkOtklon;
+            s.PkOtklon = currentData.PkOtklon;
+
+            snapshots.Add(s);
+
+            AddSnapshotToGrid(s);
+        }
+
         private void AddSnapshotToGrid(ShortCircuitSnapshot s)
         {
             grid.Rows.Add(
@@ -1048,9 +1051,7 @@ namespace ElstanLab.Pages.ShortCircuitPage
 
                 s.Xk.ToString("F3"),
 
-                s.Recalculated
-                    ? "RECALC"
-                    : "DIRECT",
+           //     s.Recalculated? "RECALC" : "DIRECT",
                 
                 s.CorrectedLosses
                     .ToString("F0"),

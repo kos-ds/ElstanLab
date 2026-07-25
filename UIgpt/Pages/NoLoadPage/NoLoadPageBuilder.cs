@@ -5,69 +5,11 @@ using System.Windows.Forms;
 using ElstanLab.Models;
 using ElstanLab.Services;
 using ElstanLab.UI;
+using ElstanLab.Themes;
 
 namespace ElstanLab.Pages.NoLoadPage
 {
-  /*  public class NoLoadSnapshot
-    {
-        //------------------------------------------------
-        // Time
-        //------------------------------------------------
-
-        public DateTime Time;
-
-        //------------------------------------------------
-        // Voltages
-        //------------------------------------------------
-
-        public double Uab;
-        public double Ubc;
-        public double Uca;
-        public double Uavg;
-        public double deltaU;
-
-        //------------------------------------------------
-        // Currents
-        //------------------------------------------------
-
-        public double Ia;
-        public double Ib;
-        public double Ic;
-        public double Iavg;
-        public double deltaI;
-        
-        //------------------------------------------------
-        // Power
-        //------------------------------------------------
-
-        public double Pa;
-        public double Pb;
-        public double Pc;
-        public double Ptotal;
-
-        //------------------------------------------------
-        // Cos
-        //------------------------------------------------
-
-        public double CosPhi;
-        public double Inom;
-
-        public double I0;
-        public double P0;
-        public double I0Passp;
-        public double P0Passp;
-        public double I0Otklon;
-        public double P0Otklon;
-
-        //------------------------------------------------
-        // IEC
-        //------------------------------------------------
-
-        public bool Passed;
-
-        public int rowcheckid=0;
-    }
-*/
+    
     public class NoLoadPageBuilder
     {
         //------------------------------------------------
@@ -112,19 +54,17 @@ namespace ElstanLab.Pages.NoLoadPage
 
         private Label lblDeltaU;
 
-        private Label test;
+        private Label lblSetCurrent;
+
 
         //------------------------------------------------
         // Storage
         //------------------------------------------------
-        
+
         private NoLoadSnapshot current = LabStorage.CurrentNoLoad;
 
         private List<NoLoadSnapshot> snapshots = LabStorage.NoLoadSnapshots;
-
-        //   private NoLoadSnapshot current = new NoLoadSnapshot();
-
-        //   private readonly List<NoLoadSnapshot> snapshots = new List<NoLoadSnapshot>();
+        
 
         //------------------------------------------------
         // ctor
@@ -186,25 +126,27 @@ namespace ElstanLab.Pages.NoLoadPage
             btnSnapshot.Height = 40;
 
             btnSnapshot.Click += BtnSnapshot_Click;
-
+            
             TableLayoutPanel top = new TableLayoutPanel();
 
             top.Dock = DockStyle.Fill;
 
             top.ColumnCount = 2;
 
-            top.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 90));
-            top.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 10));
+            top.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 80));
+            top.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20));
+
+            lblSetCurrent = CreateValueLabel();
 
             top.Controls.Add(btnSnapshot, 0, 0);
+            top.Controls.Add(lblSetCurrent, 1, 0);
 
-            test = CreateValueLabel();
+            //  test = CreateValueLabel();
 
-            top.Controls.Add(test, 1, 0);
-
+            //top.Controls.Add(test, 1, 0);
             
-            //            main.Controls.Add(btnSnapshot, 0, 2);
-            main.Controls.Add(top, 0, 2);
+            main.Controls.Add(btnSnapshot, 0, 2);           
+           // main.Controls.Add(top, 0, 2);
         }
 
         private Label CreateValueLabel()
@@ -291,9 +233,9 @@ namespace ElstanLab.Pages.NoLoadPage
 
             g.Columns.Add("I0", "I0изм, %");            
 
-            g.Columns.Add("P0res", "P0рез, %");
+            g.Columns.Add("P0res", "Pхх, %");
 
-            g.Columns.Add("I0res", "I0рез, %");
+            g.Columns.Add("I0res", "Iхх, %");
 
             g.Columns.Add("Cos", "Cosφ");
 
@@ -308,6 +250,14 @@ namespace ElstanLab.Pages.NoLoadPage
             g.Columns[0].ReadOnly = false;
 
             return g;
+        }
+
+        private void BtnSettings_Click(object sender, EventArgs e)
+        {
+            using (SettingsForm f = new SettingsForm())
+            {
+                f.ShowDialog();
+            }
         }
 
         private void BtnSnapshot_Click(object sender, EventArgs e)
@@ -349,7 +299,43 @@ namespace ElstanLab.Pages.NoLoadPage
             
             
         }
-                
+
+        public void MakeSnapshot()
+        {
+            NoLoadSnapshot s = new NoLoadSnapshot();
+
+            s.Time = current.Time;
+
+            s.Uab = current.Uab;
+            s.Ubc = current.Ubc;
+            s.Uca = current.Uca;
+            s.Uavg = current.Uavg;
+            s.deltaU = current.deltaU;
+
+
+            s.Ia = current.Ia;
+            s.Ib = current.Ib;
+            s.Ic = current.Ic;
+            s.Iavg = current.Iavg;
+            s.deltaI = current.deltaI;
+
+            s.Pa = current.Pa;
+            s.Pb = current.Pb;
+            s.Pc = current.Pc;
+            s.Ptotal = current.Ptotal;
+
+            s.CosPhi = current.CosPhi;
+
+            s.I0 = current.I0;
+            s.I0Otklon = current.I0Otklon;
+            s.P0Otklon = current.P0Otklon;
+
+            s.Passed = current.Passed;
+
+            snapshots.Add(s);
+
+            AddSnapshotToGrid(s);
+        }
 
         private void AddSnapshotToGrid(NoLoadSnapshot s)
         {
@@ -633,8 +619,19 @@ namespace ElstanLab.Pages.NoLoadPage
 
                 return;
             }
-
+            //int txtt;
             if (((TabControl)page.Parent).SelectedTab != page) return;
+            LabStorage.labsett.sendData = "c";
+            /*
+            CurrentTransformer ct = CurrentTransformerSelector.Get(LabStorage.Passport.ILV*LabStorage.Passport.I0Percent/100.0);
+            LabStorage.labsett.sendData = ct.Command;
+            lblSetCurrent.Text = "Установите ТТ в положение " + ct.Divider*5 + " А";
+            bool kctis = ct.Divider == p.Kct;
+
+            lblSetCurrent.ForeColor = kctis ? Color.LimeGreen : Color.Red;
+            */
+
+
 
             //////////////////////////////////////////////////
             // Voltage
@@ -710,7 +707,7 @@ namespace ElstanLab.Pages.NoLoadPage
 
             lblDeltaI.Text = deltaI.ToString("F2");
 
-            bool ok = Math.Abs(deltaI) <= 2;
+            bool ok = Math.Abs(deltaI) <= LabStorage.labsett.NoLoadDeltaI;
 
             lblDeltaI.ForeColor = ok
                 ? Color.LimeGreen
@@ -724,7 +721,7 @@ namespace ElstanLab.Pages.NoLoadPage
 
             lblDeltaU.Text = deltaU.ToString("F2");
 
-            bool ok1 = Math.Abs(deltaU) <= 2;
+            bool ok1 = Math.Abs(deltaU) <= LabStorage.labsett.NoLoadDeltaU;
 
             lblDeltaU.ForeColor = ok1
                 ? Color.LimeGreen
@@ -746,12 +743,12 @@ namespace ElstanLab.Pages.NoLoadPage
             lblP0Otklon.Text = current.P0Otklon.ToString("F1");
             lblI0Otklon.Text = current.I0Otklon.ToString("F1");
 
-            bool ok2 = Math.Abs(current.P0Otklon) <= 10;
+            bool ok2 = Math.Abs(current.P0Otklon) <= LabStorage.labsett.NoLoadP0Deviation;
             lblP0Otklon.ForeColor = ok2 ? Color.LimeGreen : Color.Red;
-            bool ok3 = Math.Abs(current.I0Otklon) <= 10;
+            bool ok3 = Math.Abs(current.I0Otklon) <= LabStorage.labsett.NoLoadI0Deviation;
             lblI0Otklon.ForeColor = ok3 ? Color.LimeGreen : Color.Red;
 
-            test.Text = current.rowcheckid.ToString("F0");
+        //    test.Text = current.rowcheckid.ToString("F0");
 
 
             //////////////////////////////////////////////////

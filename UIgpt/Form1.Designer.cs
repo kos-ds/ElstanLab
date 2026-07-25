@@ -39,6 +39,8 @@
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.lblConnection = new System.Windows.Forms.ToolStripStatusLabel();
             this.lblMode = new System.Windows.Forms.ToolStripStatusLabel();
+            this.dopdata = new System.Windows.Forms.ToolStripStatusLabel();
+            this.tabAV = new System.Windows.Forms.TabPage();
             this.tabMain.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -50,13 +52,14 @@
             this.tabMain.Controls.Add(this.tabShortCircuit);
             this.tabMain.Controls.Add(this.tabNoLoad);
             this.tabMain.Controls.Add(this.tabIVW);
+            this.tabMain.Controls.Add(this.tabAV);
             this.tabMain.Controls.Add(this.tabOther);
             this.tabMain.Controls.Add(this.tabReport);
             this.tabMain.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabMain.Location = new System.Drawing.Point(0, 0);
             this.tabMain.Name = "tabMain";
             this.tabMain.SelectedIndex = 0;
-            this.tabMain.Size = new System.Drawing.Size(1184, 739);
+            this.tabMain.Size = new System.Drawing.Size(1184, 727);
             this.tabMain.TabIndex = 0;
             this.tabMain.SelectedIndexChanged += new System.EventHandler(this.tabMain_SelectedIndexChanged);
             // 
@@ -65,7 +68,7 @@
             this.tabPassport.Location = new System.Drawing.Point(4, 22);
             this.tabPassport.Name = "tabPassport";
             this.tabPassport.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPassport.Size = new System.Drawing.Size(1176, 713);
+            this.tabPassport.Size = new System.Drawing.Size(1176, 701);
             this.tabPassport.TabIndex = 0;
             this.tabPassport.Text = "Паспорт изделия";
             this.tabPassport.UseVisualStyleBackColor = true;
@@ -76,16 +79,16 @@
             this.tabRatio.Location = new System.Drawing.Point(4, 22);
             this.tabRatio.Name = "tabRatio";
             this.tabRatio.Padding = new System.Windows.Forms.Padding(3);
-            this.tabRatio.Size = new System.Drawing.Size(1176, 713);
+            this.tabRatio.Size = new System.Drawing.Size(1176, 701);
             this.tabRatio.TabIndex = 1;
-            this.tabRatio.Text = "КТР";
+            this.tabRatio.Text = "Коэффициент трансформации";
             this.tabRatio.UseVisualStyleBackColor = true;
             // 
             // tabShortCircuit
             // 
             this.tabShortCircuit.Location = new System.Drawing.Point(4, 22);
             this.tabShortCircuit.Name = "tabShortCircuit";
-            this.tabShortCircuit.Size = new System.Drawing.Size(1176, 713);
+            this.tabShortCircuit.Size = new System.Drawing.Size(1176, 701);
             this.tabShortCircuit.TabIndex = 2;
             this.tabShortCircuit.Text = "Сопротивление и потери КЗ";
             this.tabShortCircuit.UseVisualStyleBackColor = true;
@@ -94,7 +97,7 @@
             // 
             this.tabNoLoad.Location = new System.Drawing.Point(4, 22);
             this.tabNoLoad.Name = "tabNoLoad";
-            this.tabNoLoad.Size = new System.Drawing.Size(1176, 713);
+            this.tabNoLoad.Size = new System.Drawing.Size(1176, 701);
             this.tabNoLoad.TabIndex = 3;
             this.tabNoLoad.Text = "Холостой ход";
             this.tabNoLoad.UseVisualStyleBackColor = true;
@@ -103,16 +106,16 @@
             // 
             this.tabIVW.Location = new System.Drawing.Point(4, 22);
             this.tabIVW.Name = "tabIVW";
-            this.tabIVW.Size = new System.Drawing.Size(1176, 713);
+            this.tabIVW.Size = new System.Drawing.Size(1176, 701);
             this.tabIVW.TabIndex = 5;
-            this.tabIVW.Text = "IVW";
+            this.tabIVW.Text = "Индуцированным напряжением";
             this.tabIVW.UseVisualStyleBackColor = true;
             // 
             // tabOther
             // 
             this.tabOther.Location = new System.Drawing.Point(4, 22);
             this.tabOther.Name = "tabOther";
-            this.tabOther.Size = new System.Drawing.Size(1176, 713);
+            this.tabOther.Size = new System.Drawing.Size(1176, 701);
             this.tabOther.TabIndex = 6;
             this.tabOther.Text = "Дополнительно";
             this.tabOther.UseVisualStyleBackColor = true;
@@ -121,7 +124,7 @@
             // 
             this.tabReport.Location = new System.Drawing.Point(4, 22);
             this.tabReport.Name = "tabReport";
-            this.tabReport.Size = new System.Drawing.Size(1176, 713);
+            this.tabReport.Size = new System.Drawing.Size(1176, 701);
             this.tabReport.TabIndex = 7;
             this.tabReport.Text = "Отчет";
             this.tabReport.UseVisualStyleBackColor = true;
@@ -130,8 +133,9 @@
             // 
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.lblConnection,
-            this.lblMode});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 739);
+            this.lblMode,
+            this.dopdata});
+            this.statusStrip1.Location = new System.Drawing.Point(0, 727);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Size = new System.Drawing.Size(1184, 22);
             this.statusStrip1.TabIndex = 1;
@@ -145,6 +149,7 @@
             this.lblConnection.Name = "lblConnection";
             this.lblConnection.Size = new System.Drawing.Size(60, 17);
             this.lblConnection.Text = "Нет связи";
+            this.lblConnection.Click += new System.EventHandler(this.lblConnection_Click);
             // 
             // lblMode
             // 
@@ -152,18 +157,34 @@
             this.lblMode.Size = new System.Drawing.Size(56, 17);
             this.lblMode.Text = "Режим: -";
             // 
+            // dopdata
+            // 
+            this.dopdata.Name = "dopdata";
+            this.dopdata.Size = new System.Drawing.Size(0, 17);
+            // 
+            // tabAV
+            // 
+            this.tabAV.Location = new System.Drawing.Point(4, 22);
+            this.tabAV.Name = "tabAV";
+            this.tabAV.Size = new System.Drawing.Size(1176, 701);
+            this.tabAV.TabIndex = 8;
+            this.tabAV.Text = "Приложенным напряжением";
+            this.tabAV.UseVisualStyleBackColor = true;
+            this.tabAV.Click += new System.EventHandler(this.tabAV_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSize = true;
-            this.ClientSize = new System.Drawing.Size(1184, 761);
+            this.ClientSize = new System.Drawing.Size(1184, 749);
             this.Controls.Add(this.tabMain);
             this.Controls.Add(this.statusStrip1);
             this.MinimumSize = new System.Drawing.Size(1100, 700);
             this.Name = "MainForm";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Лаборатория испытания трансформаторов";
+            this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.tabMain.ResumeLayout(false);
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
@@ -185,6 +206,8 @@
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.ToolStripStatusLabel lblConnection;
         private System.Windows.Forms.ToolStripStatusLabel lblMode;
+        private System.Windows.Forms.ToolStripStatusLabel dopdata;
+        private System.Windows.Forms.TabPage tabAV;
     }
 }
 

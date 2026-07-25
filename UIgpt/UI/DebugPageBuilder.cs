@@ -52,7 +52,7 @@ namespace ElstanLab.UI
             AddRow(table, "NN");
 
 
-            AddRow(table, "COMM1");
+            AddRow(table, "Kct");
             AddRow(table, "COMM2");
 
             AddRow(table, "MODE");
@@ -60,6 +60,8 @@ namespace ElstanLab.UI
 
             AddRow(table, "F1");
             AddRow(table, "F2");
+            AddRow(table, "HZ1");
+            AddRow(table, "HZ2");
 
             //////////////////////////////////////////////////
             // Прибор 1
@@ -143,13 +145,13 @@ namespace ElstanLab.UI
             SetValue("checked_noload", LabStorage.CurrentNoLoad.rowcheckid);
             SetValue("checked_KZ", LabStorage.CurrentKz.rowcheckid);
             SetValue("hvp", LabStorage.CurrentKtr.HvPercent);
-            SetValue("lvp", LabStorage.KtrSnapshots[LabStorage.CurrentKtr.rowcheckid].HvAB); // CurrentKtr.LvPercent);
+     //       SetValue("lvp", LabStorage.KtrSnapshots[LabStorage.CurrentKtr.rowcheckid].HvAB); // CurrentKtr.LvPercent);
             SetValue("POW", LabStorage.Passport.PowerKva);
             SetValue("VN", LabStorage.Passport.HVVoltage);
             SetValue("NN", LabStorage.Passport.LVVoltage);
 
 
-            SetValue("COMM1", p.COMM1);
+            SetValue("Kct", p.Kct);
             SetValue("COMM2", p.COMM2);
 
             SetValue("MODE", p.MODE);

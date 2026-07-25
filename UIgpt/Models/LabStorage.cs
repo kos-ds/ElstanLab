@@ -3,6 +3,12 @@ using System.Collections.Generic;
 
 namespace ElstanLab.Models
 {
+    public class CurrentTransformer
+    {
+        public int Divider;      // 5,10,20,50
+        public string Command;   // g1,g2,g4,g10
+    }
+
     public static class LabStorage
     {
         // ПАСПОРТ
@@ -22,6 +28,10 @@ namespace ElstanLab.Models
         // КЗ
          public static ShortCircuitSnapshot CurrentKz = new ShortCircuitSnapshot();
          public static List<ShortCircuitSnapshot> KzSnapshots = new List<ShortCircuitSnapshot>();
+
+        // Setting
+        public static LabSettings labsett = new LabSettings();
+
     }
 
     public class RatioRealtimeData
@@ -42,6 +52,8 @@ namespace ElstanLab.Models
 
         public double KAVG;
 
+        public double kNominal;
+
         public double Dev;
         public double Err;
 
@@ -52,7 +64,7 @@ namespace ElstanLab.Models
         public int rowcheckid;
         public double HvPercent;
         public double LvPercent;
-
+        
     }
 
     public class PassportModel
@@ -84,9 +96,9 @@ namespace ElstanLab.Models
 
         public double Frequency = 50;
 
-        public string VectorGroup;
+        public string VectorGroup = "Y/Y-0";
 
-        public string Cooling;
+        public string Cooling = "ONAN";
 
 
         // ВН
@@ -185,6 +197,47 @@ namespace ElstanLab.Models
         public bool Passed;
 
         public int rowcheckid = 0;
+    }
+
+    public class LabSettings
+    {
+        //////////////////////////////////////////////////
+        // Холостой ход
+        //////////////////////////////////////////////////
+
+        public double NoLoadDeltaU = 2.0;
+        public double NoLoadDeltaI = 2.0;
+        public double NoLoadP0Deviation = 10.0;
+        public double NoLoadI0Deviation = 10.0;
+
+        //////////////////////////////////////////////////
+        // Короткое замыкание
+        //////////////////////////////////////////////////
+
+        public double ShortCircuitUkDeviation = 10.0;      // Отклонение Uk от паспорта, %
+        public double ShortCircuitPkDeviation = 10.0;      // Отклонение Pk от паспорта, %
+
+        public double ShortCircuitVoltageDelta = 2.0;      // ΔU между фазами, %
+        public double ShortCircuitCurrentDelta = 5.0;      // ΔI между фазами, %
+
+        //////////////////////////////////////////////////
+        // Коэффициент трансформации
+        //////////////////////////////////////////////////
+
+        public double RatioDeviation = 0.5;
+        public double RatioKdeviation = 0.5;
+
+        //////////////////////////////////////////////////
+        // Общие
+        //////////////////////////////////////////////////
+
+        public bool AutoSelectSnapshot = true;
+        public bool status;
+        public bool connect;
+
+        public string sendData = "c";
+
+        public bool check;
     }
 
     public class ShortCircuitSnapshot

@@ -2,13 +2,13 @@
 using System.Windows.Forms;
 using ElstanLab.Themes;
 using ElstanLab.Models;
+using ElstanLab.Data;
 
 namespace ElstanLab.UI
 {
     public static class PassportPageBuilder
     {
-        private static PassportModel passport =
-            LabStorage.Passport;
+        private static PassportModel passport = LabStorage.Passport;
 
         public static void Build(TabPage page)
         {
@@ -65,12 +65,20 @@ namespace ElstanLab.UI
             
                 new FieldInfo("Дата испытания","dtTest",FieldType.Date),
             
-                new FieldInfo("Испытатель","txtEngineer",FieldType.TextBox),                
+                new FieldInfo("Испытатель","txtEngineer",FieldType.TextBox),
 
-                new FieldInfo("Примечание","txtNote",FieldType.MultiLine)
+                //  new FieldInfo("Примечание","txtNote",FieldType.MultiLine)
+
+                new FieldInfo(
+                        "Выбрать тип",
+                        "cmbTransformer",
+                        FieldType.ComboBox)
+                    {
+                        DataSource = TransformerCatalog.Types
+                    },
             });
-            TextBox txtCustomer =
-                ControlRegistry.Get<TextBox>("txtCustomer");
+
+            TextBox txtCustomer = ControlRegistry.Get<TextBox>("txtCustomer");
 
             txtCustomer.Text = passport.Customer;
 
@@ -91,8 +99,7 @@ namespace ElstanLab.UI
             };
 
 
-            DateTimePicker dtTest =
-                ControlRegistry.Get<DateTimePicker>("dtTest");
+            DateTimePicker dtTest = ControlRegistry.Get<DateTimePicker>("dtTest");
 
             dtTest.Value = passport.TestDate;
 
@@ -112,7 +119,7 @@ namespace ElstanLab.UI
                 passport.Engineer = txtEngineer.Text;
             };
 
-
+            /*
             TextBox txtNote =
                 ControlRegistry.Get<TextBox>("txtNote");
 
@@ -122,6 +129,10 @@ namespace ElstanLab.UI
             {
                 passport.Note = txtNote.Text;
             };
+            */
+
+            
+
 
             GroupBox gbPassport = ControlFactory.CreateGroup("Паспорт трансформатора");
             GroupBoxBuilder.Build(gbPassport,
@@ -152,7 +163,13 @@ namespace ElstanLab.UI
                     "Тип",
                     "txtType",
                     FieldType.TextBox),
+                    
 
+                 /*   new FieldInfo(
+                    "Тип",
+                    "cmbType",
+                    FieldType.ComboBox),
+                    */
                 new FieldInfo(
                     "Серийный №",
                     "txtSerial",
@@ -168,7 +185,7 @@ namespace ElstanLab.UI
                     Increment = 10,
                     DefaultValue = 160
                 },
-            
+
                 new FieldInfo(
                     "Частота, Гц",
                     "numFreq",
@@ -180,7 +197,7 @@ namespace ElstanLab.UI
                     DefaultValue = 50
                 },
 
-               
+
 
                 new FieldInfo(
                     "Схема соединения",
@@ -194,9 +211,10 @@ namespace ElstanLab.UI
                         "Δ/Y-11",
                         "Dyn11",
                         "Yzn11"
-                    }
+                    },
+                    DefaultIndex =0
                 },
-            
+
                 new FieldInfo(
                     "Охлаждение",
                     "cmbCooling",
@@ -207,7 +225,8 @@ namespace ElstanLab.UI
                         "ONAN",
                         "ONAF",
                         "OFAF"
-                    }
+                    },
+                    DefaultIndex =0
                 }
             });
 
@@ -243,7 +262,7 @@ namespace ElstanLab.UI
                 passport.Type = txtType.Text;
             };
 
-
+    
             TextBox txtSerial =
                 ControlRegistry.Get<TextBox>("txtSerial");
 
@@ -277,8 +296,7 @@ namespace ElstanLab.UI
             };
 
 
-            ComboBox cmbVector =
-                ControlRegistry.Get<ComboBox>("cmbVector");
+            ComboBox cmbVector = ControlRegistry.Get<ComboBox>("cmbVector");
 
             cmbVector.Text = passport.VectorGroup;
 
@@ -288,15 +306,17 @@ namespace ElstanLab.UI
             };
 
 
-            ComboBox cmbCooling =
-                ControlRegistry.Get<ComboBox>("cmbCooling");
+            ComboBox cmbCooling = ControlRegistry.Get<ComboBox>("cmbCooling");
+            
 
             cmbCooling.Text = passport.Cooling;
+            
 
             cmbCooling.SelectedIndexChanged += (s, e) =>
             {
                 passport.Cooling = cmbCooling.Text;
             };
+
 
 
             GroupBox gbHV = ControlFactory.CreateGroup("ВН");
@@ -432,8 +452,7 @@ namespace ElstanLab.UI
             };
 
 
-            NumericUpDown percLV =
-                ControlRegistry.Get<NumericUpDown>("percLV");
+            NumericUpDown percLV = ControlRegistry.Get<NumericUpDown>("percLV");
 
             percLV.Value = (decimal)passport.LVPercent;
 
@@ -551,6 +570,42 @@ namespace ElstanLab.UI
                 passport.I0Percent = (double)I0Passp.Value;
             };
 
+
+            ComboBox cmbTransformer = ControlRegistry.Get<ComboBox>("cmbTransformer");
+            
+
+
+            cmbTransformer.SelectedIndexChanged += (s, e) =>
+            {
+                TransformerType tr = cmbTransformer.SelectedItem as TransformerType;
+
+                if (tr == null)
+                    return;
+
+                // Тип
+                txtType.Text = tr.Name;
+
+                // Паспорт
+                numPower.Value = (decimal)tr.Power;
+
+                // ВН/НН
+                numHVVoltage.Value = (decimal)tr.HVVoltage;
+                numLVVoltage.Value = (decimal)tr.LVVoltage;
+
+                // Потери
+                P0Passp.Value = (decimal)tr.P0Loss;
+                PkPassport.Value = (decimal)tr.PkLoss;
+
+                // Паспортные данные
+                UkPassport.Value = (decimal)tr.UkPercent;
+                I0Passp.Value = (decimal)tr.I0Percent;
+
+            };
+            
+
+
+
+
             table.Controls.Add(gbInfo, 0, 0);
 
             table.Controls.Add(gbPassport, 1, 0);
@@ -563,7 +618,21 @@ namespace ElstanLab.UI
 
             table.Controls.Add(gbPasp, 1, 2);
 
-            //table.SetColumnSpan(gbCalc, 2);
+            if (cmbTransformer.SelectedIndex == -1)
+            {
+                TransformerType tr1 = TransformerCatalog.Types[0];
+                txtType.Text = tr1.Name;
+                numPower.Value = (decimal)tr1.Power;
+                numHVVoltage.Value = (decimal)tr1.HVVoltage;
+                numLVVoltage.Value = (decimal)tr1.LVVoltage;
+                P0Passp.Value = (decimal)tr1.P0Loss;
+                PkPassport.Value = (decimal)tr1.PkLoss;
+                UkPassport.Value = (decimal)tr1.UkPercent;
+                I0Passp.Value = (decimal)tr1.I0Percent;
+            }
+
+
+
         }
     }
 }

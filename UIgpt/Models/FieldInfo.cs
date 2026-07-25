@@ -22,9 +22,13 @@ namespace ElstanLab.Models
 
         public string[] Items { get; set; }
 
+        public object[] DataSource { get; set; }
+
         public string Unit { get; set; }
 
         public string DefaultText { get; set; } = "";
+
+        public int DefaultIndex { get; set; } = 0;
 
         // Numeric settings
 

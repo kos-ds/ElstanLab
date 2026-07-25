@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Windows.Forms;
 using ElstanLab.UI;
+using ElstanLab.Models;
 
 namespace ElstanLab.Services
 {
     public static class TransformerCalculator
     {
+        private static PassportModel passport = LabStorage.Passport;
+
         public static void Calculate()
         {
             try
@@ -14,7 +17,7 @@ namespace ElstanLab.Services
                     ControlRegistry
                     .Get<NumericUpDown>("numHVVoltage")
                     .Value;
-
+                
                 decimal lv =
                     ControlRegistry
                     .Get<NumericUpDown>("numLVVoltage")
@@ -37,6 +40,7 @@ namespace ElstanLab.Services
                         .Get<TextBox>("txtRatio")
                         .Text =
                         ratio.ToString("F3");
+                    passport.Ratio = (double)ratio;
                 }
 
                 //-------------------------------------------------
@@ -53,6 +57,7 @@ namespace ElstanLab.Services
                         .Get<TextBox>("txtIHV")
                         .Text =
                         ihv.ToString("F2");
+                    passport.IHV = (double)ihv;
                 }
 
                 //-------------------------------------------------
@@ -69,6 +74,8 @@ namespace ElstanLab.Services
                         .Get<TextBox>("txtILV")
                         .Text =
                         ilv.ToString("F2");
+                    passport.ILV = (double)ilv;
+
                 }
             }
             catch

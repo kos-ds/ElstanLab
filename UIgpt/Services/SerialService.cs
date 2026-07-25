@@ -85,9 +85,9 @@ namespace ElstanLab.Services
                     StartReadLoop();
                 });
             }
-            catch (Exception ex)
+            catch //(Exception ex)
             {
-                System.Windows.Forms.MessageBox.Show(ex.ToString());
+               // System.Windows.Forms.MessageBox.Show(ex.ToString());
                 Disconnect();
             }
         }
@@ -107,12 +107,22 @@ namespace ElstanLab.Services
                 {
                     try
                     {
-                        port.WriteLine("get");
+                        //port.WriteLine( "get");
+                        
+                        port.WriteLine(LabStorage.labsett.sendData);
 
-                        string line = port.ReadLine();
+                        byte[] buffer = new byte[91];
 
-                        MeterPacket packet = PacketParser.Parse(line);
+                        int read = 0;
 
+                        while (read < 91)
+                        {
+                            read += port.Read(buffer,read,91 - read);
+                        }
+
+                        MeterPacket packet = PacketParser.Parse(buffer);
+
+                        
                         if (packet != null)
                         {
                             DataModelService.Update(packet);
@@ -129,9 +139,9 @@ namespace ElstanLab.Services
 
                         await Task.Delay(500);
                     }
-                    catch (Exception ex)
+                    catch// (Exception ex)
                     {
-                        System.Windows.Forms.MessageBox.Show(ex.ToString());
+                       // System.Windows.Forms.MessageBox.Show(ex.ToString());
                         Disconnect();
                     }
                 }
@@ -148,21 +158,18 @@ namespace ElstanLab.Services
 
                 if (line.StartsWith("MODE="))
                 {
-                    string s =
-                        line.Replace("MODE=", "");
+                    string s = line.Replace("MODE=", "");
 
-                    int mode =
-                        Convert.ToInt32(s);
+                    int mode = Convert.ToInt32(s);
 
-                    CurrentMode =
-                        (LabMode)mode;
+                    CurrentMode = (LabMode)mode;
 
                     ModeChanged?.Invoke(CurrentMode);
                 }
             }
-            catch (Exception ex)
+            catch //(Exception ex)
             {
-                System.Windows.Forms.MessageBox.Show(ex.ToString());
+               // System.Windows.Forms.MessageBox.Show(ex.ToString());
             }
         }
 

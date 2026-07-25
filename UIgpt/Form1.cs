@@ -22,19 +22,27 @@ namespace UIgpt
     {
         CheckBox chkAuto;
         ToolStripComboBox cmbPorts;
+        public static MainForm Instance { get; private set; }
+        private NoLoadPageBuilder noLoadPage;
+        private ShortCircuitPageBuilder shortCircuitPage;
+        private RatioPageBuilder ratioPage;
 
         public MainForm()
         {
             InitializeComponent();
+            Instance = this;
+            SettingsManager.Load();
+         //   tabMain.TabPages.Remove(tabOther);
+         //   tabMain.TabPages.Remove(tabIVW);
             ////////////////////Page 1
             PassportPageBuilder.Build(tabPassport);
             FieldBinder.BindCalculationEvents();
             TransformerCalculator.Calculate();
             /////////////////////////
             new DebugPageBuilder(tabOther);
-            new RatioPageBuilder(tabRatio);
-            new ShortCircuitPageBuilder(tabShortCircuit);
-            new NoLoadPageBuilder(tabNoLoad);
+            ratioPage = new RatioPageBuilder(tabRatio);
+            shortCircuitPage = new ShortCircuitPageBuilder(tabShortCircuit);
+            noLoadPage = new NoLoadPageBuilder(tabNoLoad);
             new ReportPageBuilder(tabReport);
             // reportPage.PassportModel = PassportModel;
 
@@ -50,19 +58,64 @@ namespace UIgpt
 
             DataModelService.DataUpdated += DataModelService_DataUpdated;
             ///////////////Ktr
-
+            PacketParser.SnapshotRequested += PacketParser_SnapshotRequested;
 
 
             ///////////////////
+        }
+
+        private void PacketParser_SnapshotRequested()
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action(PacketParser_SnapshotRequested));
+                return;
+            }
+
+            ExternalSnapshot();
+        }
+
+        public void ExternalSnapshot()
+        {
+            if (tabMain.SelectedTab == tabNoLoad)
+            {
+                noLoadPage.MakeSnapshot();
+            }
+            else if (tabMain.SelectedTab == tabShortCircuit)
+            {
+                shortCircuitPage.MakeSnapshot();
+            }
+            else if (tabMain.SelectedTab == tabRatio)
+            {
+                ratioPage.MakeSnapshot();
+            }
         }
 
         void SerialService_ConnectionChanged(bool state)
         {
             BeginInvoke((Action)(() =>
             {
-                lblConnection.Text = state ? "● Подключено" : "○ Нет подключения";
-                lblConnection.ForeColor = state ? Color.Green : Color.Red;
+                if (state)
+                {
+                    lblConnection.Text = "● Подключено";
+                    lblConnection.ForeColor = Color.Green;
+                    LabStorage.labsett.connect = true;
+                } else
+                {
+                    lblConnection.Text =  "○ Нет подключения";
+                    lblConnection.ForeColor =  Color.Red;
+                    LabStorage.labsett.connect = false;
+                }
+
             }));
+        }
+
+        
+
+        public void SetStatus(string text, Color xx )
+        {
+            dopdata.Text = text;
+            dopdata.ForeColor = xx;
         }
 
         void DataModelService_DataUpdated(MeterPacket p)
@@ -74,6 +127,7 @@ namespace UIgpt
                     DataModelService_DataUpdated(p);
                 }));
 
+         
                 return;
             }
             
@@ -124,7 +178,9 @@ namespace UIgpt
                                 tabReport;
                             break;
                     }
+                
                 }
+                
             }));
         }
 
@@ -142,6 +198,14 @@ namespace UIgpt
 
             ToolStripControlHost host = new ToolStripControlHost(chkAuto);
 
+            Button btnSettings = new Button();
+            btnSettings.Text = "⚙";
+            btnSettings.Height = 30;
+            btnSettings.Width = 30;
+
+            btnSettings.Click += BtnSettings_Click;
+            ToolStripControlHost setting = new ToolStripControlHost(btnSettings);
+
             cmbPorts = new ToolStripComboBox();
 
             cmbPorts.Width = 80;
@@ -156,8 +220,9 @@ namespace UIgpt
             statusStrip1.Items.Add(cmbPorts);
             statusStrip1.Items.Add(new ToolStripStatusLabel("   "));
             statusStrip1.Items.Add(host);
-            
-            
+
+            ToolStripStatusLabel spacer = new ToolStripStatusLabel();
+            spacer.Spring = true;   // занимает всё свободное пространство
 
             statusStrip1.Items.Add(new ToolStripStatusLabel("   "));
 
@@ -166,22 +231,34 @@ namespace UIgpt
             statusStrip1.Items.Add(new ToolStripStatusLabel("   "));
 
             statusStrip1.Items.Add(lblConnection);
+           
+            statusStrip1.Items.Add(dopdata);
+
+            //statusStrip1.Items.Add(new ToolStripStatusLabel("   "));
+            statusStrip1.Items.Add(spacer);
+
+            statusStrip1.Items.Add(setting);
         }
 
+        private void BtnSettings_Click(object sender, EventArgs e)
+        {
+            using (SettingsForm f = new SettingsForm())
+            {
+                f.ShowDialog();
+            }
+        }
 
         void LoadPorts()
         {
             cmbPorts.Items.Clear();
 
-            string[] ports =
-                SerialPort.GetPortNames();
+            string[] ports = SerialPort.GetPortNames();
 
             Array.Sort(ports);
 
             cmbPorts.Items.AddRange(ports);
 
-            string saved =
-                Properties.Settings.Default.ComPort;
+            string saved = Properties.Settings.Default.ComPort;
 
             if (!string.IsNullOrWhiteSpace(saved))
             {
@@ -235,6 +312,16 @@ namespace UIgpt
           //  {
           //      new RatioPageBuilder(tabRatio);
           //  }
+        }
+
+        private void lblConnection_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void tabAV_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

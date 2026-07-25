@@ -31,5 +31,27 @@ namespace ElstanLab.Services
 
             return crc;
         }
+
+        public static ushort Compute2(byte[] data, int offset, int length)
+        {
+            ushort crc = 0xFFFF;
+
+            for (int i = offset; i < offset + length; i++)
+            {
+                crc ^= data[i];
+
+                for (int j = 0; j < 8; j++)
+                {
+                    if ((crc & 1) != 0)
+                        crc = (ushort)((crc >> 1) ^ 0xA001);
+                    else
+                        crc >>= 1;
+                }
+            }
+
+            return crc;
+        }
+
+
     }
 }

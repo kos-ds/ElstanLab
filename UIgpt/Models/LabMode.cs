@@ -8,11 +8,11 @@
 
         KTR = 1,
 
-        ShortCircuit = 3,
+        ShortCircuit = 2,
 
-        NoLoad = 4,
+        NoLoad = 3,
 
-        IVW = 5,
+        IVW = 55,
 
         Other = 6,
 

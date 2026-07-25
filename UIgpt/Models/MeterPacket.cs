@@ -26,6 +26,8 @@
 
         public double F1;
 
+        public int Kct;
+
         //------------------------------------------------
         // Прибор 2
         //------------------------------------------------
@@ -51,5 +53,7 @@
         public int MODE;
 
         public bool SNAPSHOT;
+
+        public bool status;
     }
 }

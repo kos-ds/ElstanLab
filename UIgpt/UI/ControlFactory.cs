@@ -79,6 +79,7 @@ namespace ElstanLab.UI
                 Font = Theme.DefaultFont,
                 Margin = new Padding(3),
                 Width = 150
+                
             };
         }
     }

@@ -1,19 +1,21 @@
-﻿
-using System;
-using System.Text;
+﻿using System;
 using System.Windows.Forms;
 
-using ElstanLab.Models;
+using ElstanLab.Pages.ReportPage.Reports;
+using Microsoft.Web.WebView2.WinForms;
+using System.IO;
+using Microsoft.Web.WebView2.Core;
 
 namespace ElstanLab.Pages.ReportPage
 {
     public class ReportPageBuilder
     {
-        //////////////////////////////////////////////////
-        // UI
-        //////////////////////////////////////////////////
+//////////////////////////////////////////////////
+// UI
+//////////////////////////////////////////////////
 
-        private TabPage page;
+
+    private TabPage page;
 
         private Panel topPanel;
 
@@ -23,7 +25,10 @@ namespace ElstanLab.Pages.ReportPage
 
         private Button btnPrint;
 
-        private WebBrowser browser;
+        private Button btnSaveHtml;
+
+        private WebView2 browser;
+        
 
         //////////////////////////////////////////////////
         // INIT
@@ -61,9 +66,15 @@ namespace ElstanLab.Pages.ReportPage
 
             topPanel.Dock = DockStyle.Top;
 
-            topPanel.Height = 50;
+            topPanel.Height = 55;
 
-            topPanel.Padding = new Padding(5);
+            topPanel.Padding = new Padding(8);
+
+            topPanel.BackColor =
+                System.Drawing.Color.FromArgb(
+                    245,
+                    245,
+                    245);
 
             //------------------------------------------------
             // REPORT TYPE
@@ -75,19 +86,23 @@ namespace ElstanLab.Pages.ReportPage
 
             cbType.Top = 10;
 
-            cbType.Width = 260;
+            cbType.Width = 320;
+
+            cbType.Height = 30;
+
+            cbType.Font =
+                new System.Drawing.Font(
+                    "Segoe UI",
+                    10F);
 
             cbType.DropDownStyle =
                 ComboBoxStyle.DropDownList;
 
-            cbType.Items.Add(
-                "Потери и ток ХХ");
+            cbType.Items.Add("Коэффициент трансформации"); 
 
-            cbType.Items.Add(
-                "Сопротивление и потери КЗ");
+            cbType.Items.Add("Сопротивление и потери КЗ");
 
-            cbType.Items.Add(
-                "Коэффициент трансформации");
+            cbType.Items.Add("Потери и ток ХХ");
 
             cbType.SelectedIndex = 0;
 
@@ -100,13 +115,19 @@ namespace ElstanLab.Pages.ReportPage
             btnGenerate.Text =
                 "Сформировать";
 
-            btnGenerate.Left = 290;
+            btnGenerate.Left = 350;
 
             btnGenerate.Top = 8;
 
-            btnGenerate.Width = 140;
+            btnGenerate.Width = 150;
 
-            btnGenerate.Height = 32;
+            btnGenerate.Height = 34;
+
+            btnGenerate.Font =
+                new System.Drawing.Font(
+                    "Segoe UI",
+                    10F,
+                    System.Drawing.FontStyle.Bold);
 
             //------------------------------------------------
             // PRINT
@@ -117,14 +138,42 @@ namespace ElstanLab.Pages.ReportPage
             btnPrint.Text =
                 "Печать";
 
-            btnPrint.Left = 440;
+            btnPrint.Left = 510;
 
             btnPrint.Top = 8;
 
-            btnPrint.Width = 100;
+            btnPrint.Width = 120;
 
-            btnPrint.Height = 32;
+            btnPrint.Height = 34;
 
+            btnPrint.Font =
+                new System.Drawing.Font(
+                    "Segoe UI",
+                    10F);
+
+            //------------------------------------------------
+            // SAVE HTML
+            //------------------------------------------------
+
+            btnSaveHtml = new Button();
+
+            btnSaveHtml.Text =
+                "Сохранить HTML";
+
+            btnSaveHtml.Left = 640;
+
+            btnSaveHtml.Top = 8;
+
+            btnSaveHtml.Width = 160;
+
+            btnSaveHtml.Height = 34;
+
+            btnSaveHtml.Font =
+                new System.Drawing.Font(
+                    "Segoe UI",
+                    10F);
+
+            
             //------------------------------------------------
             // ADD
             //------------------------------------------------
@@ -135,6 +184,8 @@ namespace ElstanLab.Pages.ReportPage
 
             topPanel.Controls.Add(btnPrint);
 
+         //   topPanel.Controls.Add(btnSaveHtml);
+
             page.Controls.Add(topPanel);
         }
 
@@ -144,47 +195,95 @@ namespace ElstanLab.Pages.ReportPage
 
         private void BuildBrowser()
         {
-            browser = new WebBrowser();
+            //browser = new WebBrowser();
+            browser = new WebView2();
 
             browser.Dock = DockStyle.Fill;
 
             page.Controls.Add(browser);
+
+            browser.CoreWebView2InitializationCompleted +=
+                Browser_CoreWebView2InitializationCompleted;
+
+            browser.EnsureCoreWebView2Async();
+           
         }
 
+
+        private void Browser_CoreWebView2InitializationCompleted(object sender,Microsoft.Web.WebView2.Core.CoreWebView2InitializationCompletedEventArgs e)
+        {
+            if (!e.IsSuccess)
+            {
+                MessageBox.Show(
+                    e.InitializationException.ToString(),
+                    "WebView2");
+            }
+        }
         //////////////////////////////////////////////////
         // EVENTS
         //////////////////////////////////////////////////
 
         private void RegisterEvents()
         {
-            btnGenerate.Click += BtnGenerate_Click;
+            btnGenerate.Click +=
+                BtnGenerate_Click;
 
-            btnPrint.Click += BtnPrint_Click;
+            btnPrint.Click +=
+                BtnPrint_Click;
+
+            btnSaveHtml.Click +=
+                BtnSaveHtml_Click;
+            
         }
 
         //////////////////////////////////////////////////
         // GENERATE
         //////////////////////////////////////////////////
+        private async void BtnSavePdf_Click(object sender,EventArgs e)
+        {
+            SaveFileDialog sfd = new SaveFileDialog();
+
+            sfd.Filter = "PDF (*.pdf)|*.pdf";
+
+            sfd.FileName = GenerateFileName()
+                .Replace(".html", ".pdf");
+
+            if (sfd.ShowDialog() != DialogResult.OK)
+                return;
+
+            await browser.CoreWebView2.PrintToPdfAsync(sfd.FileName);
+            //await browser.CoreWebView2.ExecuteScriptAsync("window.print();");
+
+            MessageBox.Show("PDF сохранен");
+        }
+
+
 
         private void BtnGenerate_Click(
             object sender,
             EventArgs e)
         {
-            string type = cbType.SelectedItem.ToString();
-
-            if (type == "Потери и ток ХХ")
+            try
             {
-                GenerateNoLoadReport();
+                string html =
+                    GenerateSelectedReport();
+
+                if (string.IsNullOrEmpty(html))
+                {
+                    MessageBox.Show(
+                        "Не удалось сформировать отчет");
+
+                    return;
+                }
+
+                //      browser.DocumentText = html;
+                browser.NavigateToString(html);
             }
-
-            if (type == "Сопротивление и потери КЗ")
+            catch (Exception ex)
             {
-                GenerateShortCircuitReport();
-            }
-
-            if (type == "Коэффициент трансформации")
-            {
-                GenerateRatioReport();
+                MessageBox.Show(
+                    "Ошибка формирования отчета:\r\n\r\n"
+                    + ex.Message);
             }
         }
 
@@ -192,881 +291,150 @@ namespace ElstanLab.Pages.ReportPage
         // PRINT
         //////////////////////////////////////////////////
 
-        private void BtnPrint_Click(object sender,  EventArgs e)
+        private void BtnPrint_Click(
+            object sender,
+            EventArgs e)
         {
-            if (browser.Document != null)
+            try
             {
-                browser.ShowPrintDialog();
+                if (browser.CoreWebView2 == null)
+                {
+                    MessageBox.Show(
+                        "Отчет не сформирован");
+
+                    return;
+                }
+
+                CoreWebView2PrintSettings printSettings = browser.CoreWebView2.Environment.CreatePrintSettings();
+
+                // 3. ОТКЛЮЧАЕМ колонтитулы (заголовки и подвалы)
+                printSettings.ShouldPrintHeaderAndFooter = false;
+                
+                browser.CoreWebView2.ExecuteScriptAsync("window.print();");
             }
-        }
-
-        //////////////////////////////////////////////////
-        // ХХ REPORT
-        //////////////////////////////////////////////////
-
-        private void GenerateNoLoadReport()
-        {
-            if (LabStorage.NoLoadSnapshots.Count == 0)
-            {
-                MessageBox.Show("Нет данных ХХ");
-
-                return;
-            }
-
-            PassportModel p = LabStorage.Passport;
-            
-            NoLoadSnapshot last = LabStorage.NoLoadSnapshots[LabStorage.CurrentNoLoad.rowcheckid];
-
-            StringBuilder sb = new StringBuilder();
-
-            BeginHtml(sb);
-
-            //------------------------------------------------
-            // TITLE
-            //------------------------------------------------
-
-            AddMainTitle(sb, "ПРОТОКОЛ ИСПЫТАНИЯ");
-
-            AddSubTitle(sb, "ПОТЕРИ И ТОК ХОЛОСТОГО ХОДА");
-
-            //------------------------------------------------
-            // PASSPORT
-            //------------------------------------------------
-
-            AddPassportTable(sb, p);
-
-            //------------------------------------------------
-            // RESULTS
-            //------------------------------------------------
-
-            AddSectionTitle(sb, "Результаты измерений");
-
-            sb.Append("<table>");
-
-            sb.Append(@"
-            <tr>
-            <th>Uab</th>
-            <th>Ubc</th>
-            <th>Uca</th>
-            
-            <th>Ia</th>
-            <th>Ib</th>
-            <th>Ic</th>
-            
-            <th>PΣ</th>
-            <th>Cosφ</th>
-            </tr>
-            ");
-      
-                var s = LabStorage.NoLoadSnapshots[LabStorage.CurrentNoLoad.rowcheckid];
-
-                sb.Append("<tr>");
-
-                AddCell(sb, s.Uab.ToString("F1"));
-                AddCell(sb, s.Ubc.ToString("F1"));
-                AddCell(sb, s.Uca.ToString("F1"));
-
-                AddCell(sb, s.Ia.ToString("F2"));
-                AddCell(sb, s.Ib.ToString("F2"));
-                AddCell(sb, s.Ic.ToString("F2"));
-
-                AddCell(sb, s.Ptotal.ToString("F1"));
-
-                AddCell(sb, s.CosPhi.ToString("F3"));
-
-                sb.Append("</tr>");
-            //}
-
-            sb.Append("</table>");
-
-            //------------------------------------------------
-            // CALC
-            //------------------------------------------------
-
-            AddSectionTitle(sb, "Расчетные параметры");
-
-            sb.Append("<table>");
-
-            AddRow(sb, "Измеренный I0 %", last.I0.ToString("F2"));
-
-            AddRow(
-                sb,
-                "Паспортный I0 %",
-                last.I0Passp.ToString("F2"));
-
-            AddRow(
-                sb,
-                "Отклонение I0 %",
-                last.I0Otklon.ToString("F2"));
-
-            AddRow(
-                sb,
-                "Измеренные P0",
-                last.P0.ToString("F1"));
-
-            AddRow(
-                sb,
-                "Паспортные P0",
-                last.P0Passp.ToString("F1"));
-
-            AddRow(
-                sb,
-                "Отклонение P0 %",
-                last.P0Otklon.ToString("F2"));
-
-            sb.Append("</table>");
-
-            //------------------------------------------------
-            // RESULT
-            //------------------------------------------------
-
-            AddConclusion(
-                sb,
-                last.Passed);
-
-            EndHtml(sb);
-
-            browser.DocumentText =
-                sb.ToString();
-        }
-
-        //////////////////////////////////////////////////
-        // КЗ REPORT
-        //////////////////////////////////////////////////
-
-        private void GenerateShortCircuitReport()
-        {
-            if (LabStorage.KzSnapshots.Count == 0)
-            {
-                MessageBox.Show("Нет данных КЗ");
-
-                return;
-            }
-
-            PassportModel p = LabStorage.Passport;
-            
-            ShortCircuitSnapshot last = LabStorage.KzSnapshots[LabStorage.CurrentKz.rowcheckid];
-
-            StringBuilder sb = new StringBuilder();
-
-            BeginHtml(sb);
-
-            //------------------------------------------------
-            // TITLE
-            //------------------------------------------------
-
-            AddMainTitle(sb, "ПРОТОКОЛ ИСПЫТАНИЯ");
-
-            AddSubTitle(sb, "СОПРОТИВЛЕНИЕ И ПОТЕРИ КОРОТКОГО ЗАМЫКАНИЯ");
-
-            //------------------------------------------------
-            // PASSPORT
-            //------------------------------------------------
-
-            AddPassportTable(sb, p);
-
-            //------------------------------------------------
-            // RESULTS
-            //------------------------------------------------
-
-            AddSectionTitle(sb, "Результаты измерений");
-
-            sb.Append("<table>");
-
-            sb.Append(@"
-                <tr>
-                
-                <th>Uab</th>
-                <th>Ubc</th>
-                <th>Uca</th>
-                
-                <th>Ia</th>
-                <th>Ib</th>
-                <th>Ic</th>
-                
-                <th>PΣ</th>
-                
-                <th>Uk%</th>
-                
-                </tr>
-                ");
-            
-                var s = LabStorage.KzSnapshots[LabStorage.CurrentKz.rowcheckid];
-
-                sb.Append("<tr>");
-
-                AddCell(sb, s.Uab.ToString("F1"));
-                AddCell(sb, s.Ubc.ToString("F1"));
-                AddCell(sb, s.Uca.ToString("F1"));
-
-                AddCell(sb, s.Ia.ToString("F2"));
-                AddCell(sb, s.Ib.ToString("F2"));
-                AddCell(sb, s.Ic.ToString("F2"));
-
-                AddCell(sb, s.Ptotal.ToString("F1"));
-
-                AddCell(
-                    sb,
-                    s.UkPercent.ToString("F2"));
-
-                sb.Append("</tr>");
-            //}
-
-            sb.Append("</table>");
-
-            //------------------------------------------------
-            // CALC
-            //------------------------------------------------
-
-            AddSectionTitle(
-                sb,
-                "Расчетные параметры");
-
-            sb.Append("<table>");
-
-            AddRow(
-                sb,
-                "Uk измеренное %",
-                last.UkPercent.ToString("F2"));
-
-            AddRow(
-                sb,
-                "Uk паспортное %",
-                last.UkPassp.ToString("F2"));
-
-            AddRow(
-                sb,
-                "Отклонение Uk %",
-                last.UkOtklon.ToString("F2"));
-
-            AddRow(
-                sb,
-                "Pk измеренное",
-                last.Ptotal.ToString("F1"));
-
-            AddRow(
-                sb,
-                "Pk паспортное",
-                last.PkPassp.ToString("F1"));
-
-            AddRow(
-                sb,
-                "Отклонение Pk %",
-                last.PkOtklon.ToString("F2"));
-
-            AddRow(
-                sb,
-                "Rk",
-                last.Rk.ToString("F4"));
-
-            AddRow(
-                sb,
-                "Xk",
-                last.Xk.ToString("F4"));
-
-            AddRow(
-                sb,
-                "Zk",
-                last.Zk.ToString("F4"));
-
-            sb.Append("</table>");
-
-            //------------------------------------------------
-            // RESULT
-            //------------------------------------------------
-
-            AddConclusion(
-                sb,
-                last.Passed);
-
-            EndHtml(sb);
-
-            browser.DocumentText =
-                sb.ToString();
-        }
-
-        //////////////////////////////////////////////////
-        // KTR REPORT
-        //////////////////////////////////////////////////
-
-        private void GenerateRatioReport()
-        {
-            if (LabStorage.KtrSnapshots == null
-                ||
-                LabStorage.KtrSnapshots.Count == 0)
+            catch (Exception ex)
             {
                 MessageBox.Show(
-                    "Нет данных КТР");
-
-                return;
+                    "Ошибка печати:\r\n\r\n"
+                    + ex.Message);
             }
-
-            PassportModel p =
-                LabStorage.Passport;
-
-            RatioRealtimeData last = LabStorage.KtrSnapshots[ LabStorage.KtrSnapshots.Count - 1];
-
-            StringBuilder sb =
-                new StringBuilder();
-
-            BeginHtml(sb);
-
-            //------------------------------------------------
-            // TITLE
-            //------------------------------------------------
-
-            AddMainTitle(
-                sb,
-                "ПРОТОКОЛ ИСПЫТАНИЯ");
-
-            AddSubTitle(
-                sb,
-                "КОЭФФИЦИЕНТ ТРАНСФОРМАЦИИ");
-
-            //------------------------------------------------
-            // PASSPORT
-            //------------------------------------------------
-
-            AddPassportTable(
-                sb,
-                p);
-
-            //------------------------------------------------
-            // RESULTS
-            //------------------------------------------------
-
-            AddSectionTitle(
-                sb,
-                "Результаты измерений");
-
-            sb.Append("<table>");
-
-            sb.Append(@"
-
-<tr>
-
-<th>№</th>
-
-<th>ВН AB</th>
-<th>ВН BC</th>
-<th>ВН CA</th>
-<th>ВН AVG</th>
-
-<th>НН ab</th>
-<th>НН bc</th>
-<th>НН ca</th>
-<th>НН avg</th>
-
-<th>Kab</th>
-<th>Kbc</th>
-<th>Kca</th>
-
-<th>Kavg</th>
-
-<th>Δ%</th>
-
-<th>IEC%</th>
-
-</tr>
-
-");
-
-            for (int i = 0;
-                i < LabStorage.KtrSnapshots.Count;
-                i++)
-            {
-                var s =
-                    LabStorage.KtrSnapshots[i];
-
-                sb.Append("<tr>");
-
-                //------------------------------------------------
-                // NUMBER
-                //------------------------------------------------
-
-                AddCell(
-                    sb,
-                    (i + 1).ToString());
-
-                //------------------------------------------------
-                // HV
-                //------------------------------------------------
-
-                AddCell(
-                    sb,
-                    s.HvAB.ToString("F1"));
-
-                AddCell(
-                    sb,
-                    s.HvBC.ToString("F1"));
-
-                AddCell(
-                    sb,
-                    s.HvCA.ToString("F1"));
-
-                AddCell(
-                    sb,
-                    s.HvAVG.ToString("F1"));
-
-                //------------------------------------------------
-                // LV
-                //------------------------------------------------
-
-                AddCell(
-                    sb,
-                    s.LvAB.ToString("F3"));
-
-                AddCell(
-                    sb,
-                    s.LvBC.ToString("F3"));
-
-                AddCell(
-                    sb,
-                    s.LvCA.ToString("F3"));
-
-                AddCell(
-                    sb,
-                    s.LvAVG.ToString("F3"));
-
-                //------------------------------------------------
-                // K
-                //------------------------------------------------
-
-                AddCell(
-                    sb,
-                    s.KAB.ToString("F3"));
-
-                AddCell(
-                    sb,
-                    s.KBC.ToString("F3"));
-
-                AddCell(
-                    sb,
-                    s.KCA.ToString("F3"));
-
-                AddCell(
-                    sb,
-                    s.KAVG.ToString("F3"));
-
-                //------------------------------------------------
-                // DEV
-                //------------------------------------------------
-
-                AddCell(
-                    sb,
-                    s.Dev.ToString("F2"));
-
-                //------------------------------------------------
-                // IEC
-                //------------------------------------------------
-
-                AddCell(
-                    sb,
-                    s.Err.ToString("F2"));
-
-                sb.Append("</tr>");
-            }
-
-            sb.Append("</table>");
-
-            //------------------------------------------------
-            // CALC
-            //------------------------------------------------
-
-            AddSectionTitle(
-                sb,
-                "Расчетные параметры");
-
-            sb.Append("<table>");
-
-            AddRow(
-                sb,
-                "Kab",
-                last.KAB.ToString("F3"));
-
-            AddRow(
-                sb,
-                "Kbc",
-                last.KBC.ToString("F3"));
-
-            AddRow(
-                sb,
-                "Kca",
-                last.KCA.ToString("F3"));
-
-            AddRow(
-                sb,
-                "Kavg",
-                last.KAVG.ToString("F3"));
-
-            AddRow(
-                sb,
-                "Максимальное отклонение %",
-                last.Dev.ToString("F2"));
-
-            AddRow(
-                sb,
-                "IEC ошибка %",
-                last.Err.ToString("F2"));
-
-            AddRow(
-                sb,
-                "Ответвление ВН %",
-                last.HvPercent.ToString("F2"));
-
-            AddRow(
-                sb,
-                "Ответвление НН %",
-                last.LvPercent.ToString("F2"));
-
-            sb.Append("</table>");
-
-            //------------------------------------------------
-            // IEC
-            //------------------------------------------------
-
-            AddSectionTitle(
-                sb,
-                "Норматив");
-
-            sb.Append("<table>");
-
-            AddRow(
-                sb,
-                "Допустимое отклонение IEC",
-                "±0.5 %");
-
-            AddRow(
-                sb,
-                "Измеренное отклонение",
-                last.Err.ToString("F2") + " %");
-
-            sb.Append("</table>");
-
-            //------------------------------------------------
-            // RESULT
-            //------------------------------------------------
-
-            AddConclusion(
-                sb,
-                last.Passed);
-
-            //------------------------------------------------
-            // NOTE
-            //------------------------------------------------
-
-            AddSectionTitle(
-                sb,
-                "Примечание");
-
-            sb.Append(@"
-
-<div style='margin-top:15px;
-font-size:15px;
-line-height:24px;'>
-
-Испытание коэффициента трансформации
-выполнено в соответствии
-с IEC 60076.
-
-</div>
-
-");
-
-            EndHtml(sb);
-
-            browser.DocumentText =
-                sb.ToString();
         }
-
 
       
-
         //////////////////////////////////////////////////
-        // HTML START
+        // SAVE HTML
         //////////////////////////////////////////////////
 
-        private void BeginHtml(
-            StringBuilder sb)
+        private void BtnSaveHtml_Click(object sender,EventArgs e)
         {
-            sb.Append(@"
-
-<html>
-
-<head>
-
-<meta charset='utf-8'>
-
-<style>
-
-body
-{
-    font-family: Arial;
-    margin: 30px;
-    color:#222;
-}
-
-h1,h2,h3
-{
-    text-align:center;
-}
-
-table
-{
-    width:100%;
-    border-collapse:collapse;
-    margin-top:20px;
-}
-
-th
-{
-    background:#EAEAEA;
-}
-
-th,td
-{
-    border:1px solid #555;
-    padding:8px;
-    text-align:center;
-}
-
-.title
-{
-    font-size:26px;
-    font-weight:bold;
-    margin-top:10px;
-}
-
-.subtitle
-{
-    font-size:20px;
-    margin-top:10px;
-    margin-bottom:20px;
-}
-
-.section
-{
-    font-size:18px;
-    font-weight:bold;
-    margin-top:25px;
-}
-
-.ok
-{
-    color:green;
-    font-size:24px;
-    font-weight:bold;
-    text-align:center;
-    margin-top:30px;
-}
-
-.fail
-{
-    color:red;
-    font-size:24px;
-    font-weight:bold;
-    text-align:center;
-    margin-top:30px;
-}
-
-</style>
-
-</head>
-
-<body>
-");
-        }
-
-        //////////////////////////////////////////////////
-        // HTML END
-        //////////////////////////////////////////////////
-
-        private void EndHtml(
-            StringBuilder sb)
-        {
-            sb.Append("</body>");
-
-            sb.Append("</html>");
-        }
-
-        //////////////////////////////////////////////////
-        // TITLES
-        //////////////////////////////////////////////////
-
-        private void AddMainTitle(
-            StringBuilder sb,
-            string text)
-        {
-            sb.Append(
-                "<div class='title'>" +
-                text +
-                "</div>");
-        }
-
-        private void AddSubTitle(
-            StringBuilder sb,
-            string text)
-        {
-            sb.Append(
-                "<div class='subtitle'>" +
-                text +
-                "</div>");
-        }
-
-        private void AddSectionTitle(
-            StringBuilder sb,
-            string text)
-        {
-            sb.Append(
-                "<div class='section'>" +
-                text +
-                "</div>");
-        }
-
-        //////////////////////////////////////////////////
-        // PASSPORT
-        //////////////////////////////////////////////////
-
-        private void AddPassportTable(
-            StringBuilder sb,
-            PassportModel p)
-        {
-            sb.Append("<table>");
-
-            AddRow(
-                sb,
-                "Заказчик",
-                p.Customer);
-
-            AddRow(
-                sb,
-                "Объект",
-                p.ObjectName);
-
-            AddRow(
-                sb,
-                "Тип",
-                p.Type);
-
-            AddRow(
-                sb,
-                "Завод",
-                p.Factory);
-
-            AddRow(
-                sb,
-                "Серийный номер",
-                p.Serial);
-
-            AddRow(
-                sb,
-                "Год",
-                p.Year.ToString());
-
-            AddRow(
-                sb,
-                "Мощность",
-                p.PowerKva + " кВА");
-
-            AddRow(
-                sb,
-                "Частота",
-                p.Frequency + " Гц");
-
-            AddRow(
-                sb,
-                "ВН",
-                p.HVVoltage + " кВ");
-
-            AddRow(
-                sb,
-                "НН",
-                p.LVVoltage + " кВ");
-
-            AddRow(
-                sb,
-                "Группа",
-                p.VectorGroup);
-
-            AddRow(
-                sb,
-                "Охлаждение",
-                p.Cooling);
-
-            AddRow(
-                sb,
-                "Инженер",
-                p.Engineer);
-
-            AddRow(
-                sb,
-                "Дата",
-                p.TestDate.ToString(
-                    "dd.MM.yyyy"));
-
-            sb.Append("</table>");
-        }
-
-        //////////////////////////////////////////////////
-        // RESULT
-        //////////////////////////////////////////////////
-
-        private void AddConclusion(
-            StringBuilder sb,
-            bool passed)
-        {
-            AddSectionTitle(
-                sb,
-                "Заключение");
-
-            if (passed)
+            try
             {
-                sb.Append(
-                    "<div class='ok'>" +
-                    "СООТВЕТСТВУЕТ" +
-                    "</div>");
+                string html = GenerateSelectedReport();
+
+                if (string.IsNullOrEmpty(html))
+                {
+                    MessageBox.Show(
+                        "Нет данных для сохранения");
+
+                    return;
+                }
+
+                SaveFileDialog sfd = new SaveFileDialog();
+
+                sfd.Filter = "HTML file (*.html)|*.html";
+
+                sfd.FileName =
+                    GenerateFileName();
+
+                if (sfd.ShowDialog()
+                    != DialogResult.OK)
+                {
+                    return;
+                }
+
+                System.IO.File.WriteAllText(
+                    sfd.FileName,
+                    html,
+                    System.Text.Encoding.UTF8);
+
+                MessageBox.Show(
+                    "Отчет сохранен");
             }
-            else
+            catch (Exception ex)
             {
-                sb.Append(
-                    "<div class='fail'>" +
-                    "НЕ СООТВЕТСТВУЕТ" +
-                    "</div>");
+                MessageBox.Show(
+                    "Ошибка сохранения:\r\n\r\n"
+                    + ex.Message);
             }
         }
 
         //////////////////////////////////////////////////
-        // TABLE
+        // GENERATE REPORT
         //////////////////////////////////////////////////
 
-        private void AddRow(
-            StringBuilder sb,
-            string name,
-            string value)
+        private string GenerateSelectedReport()
         {
-            sb.Append("<tr>");
+            switch (cbType.SelectedIndex)
+            {
+                //------------------------------------------------
+                // ХХ
+                //------------------------------------------------
 
-            sb.Append(
-                "<td>" +
-                name +
-                "</td>");
+                case 0:
 
-            sb.Append(
-                "<td>" +
-                value +
-                "</td>");
+                    return new RatioReportBuilder().Build(); 
 
-            sb.Append("</tr>");
+                //------------------------------------------------
+                // КЗ
+                //------------------------------------------------
+
+                case 1:
+
+                    return new ShortCircuitReportBuilder().Build();
+
+                //------------------------------------------------
+                // КТР
+                //------------------------------------------------
+
+                case 2:
+
+                    return new NoLoadReportBuilder().Build();
+            }
+
+            return "";
         }
 
-        private void AddCell(
-            StringBuilder sb,
-            string value)
+        //////////////////////////////////////////////////
+        // FILE NAME
+        //////////////////////////////////////////////////
+
+        private string GenerateFileName()
         {
-            sb.Append(
-                "<td>" +
-                value +
-                "</td>");
+            string type = "REPORT";
+
+            switch (cbType.SelectedIndex)
+            {
+                case 0:
+                    type = "NOLOAD";
+                    break;
+
+                case 1:
+                    type = "SHORTCIRCUIT";
+                    break;
+
+                case 2:
+                    type = "RATIO";
+                    break;
+            }
+
+            return
+                type
+                + "_"
+                + DateTime.Now.ToString(
+                    "yyyyMMdd_HHmmss")
+                + ".html";
         }
     }
+
+
 }

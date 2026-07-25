@@ -51,8 +51,7 @@ namespace ElstanLab.UI
             {
                 FieldInfo field = fields[row];
 
-                Label lbl =
-                    ControlFactory.CreateLabel(field.Label);
+                Label lbl = ControlFactory.CreateLabel(field.Label);
 
                 Control ctrl = CreateControl(field);
                 ctrl.Anchor = AnchorStyles.Left |AnchorStyles.Right;
@@ -99,14 +98,45 @@ namespace ElstanLab.UI
 
                     return num;
 
+                /*               case FieldType.ComboBox:
+
+                                   ComboBox cb = ControlFactory.CreateCombo();
+
+                                   cb.Name = field.Name;
+
+                                   if (field.Items != null)
+                                   {
+                                       cb.Items.AddRange(field.Items);
+
+                                       if (field.DefaultIndex >= 0 &&
+                                           field.DefaultIndex < cb.Items.Count)
+                                       {
+                                           cb.SelectedIndex = field.DefaultIndex;
+                                       }
+                                   }
+
+                                   return cb;*/
+
                 case FieldType.ComboBox:
 
                     ComboBox cb = ControlFactory.CreateCombo();
 
                     cb.Name = field.Name;
 
-                    if (field.Items != null)
+                    if (field.DataSource != null)
+                    {
+                        cb.DataSource = field.DataSource;
+                    }
+                    else if (field.Items != null)
+                    {
                         cb.Items.AddRange(field.Items);
+
+                        if (field.DefaultIndex >= 0 &&
+                            field.DefaultIndex < cb.Items.Count)
+                        {
+                            cb.SelectedIndex = field.DefaultIndex;
+                        }
+                    }
 
                     return cb;
 
@@ -139,8 +169,7 @@ namespace ElstanLab.UI
 
                 case FieldType.ReadOnly:
 
-                    TextBox ro =
-                        ControlFactory.CreateTextBox();
+                    TextBox ro = ControlFactory.CreateTextBox();
 
                     ro.ReadOnly = true;
 
