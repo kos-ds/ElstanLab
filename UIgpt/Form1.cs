@@ -15,6 +15,8 @@ using ElstanLab.Pages.RatioPage;
 using ElstanLab.Pages.ShortCircuitPage;
 using ElstanLab.Pages.NoLoadPage;
 using ElstanLab.Pages.ReportPage;
+using ElstanLab.Pages.IVWPage;
+using ElstanLab.Pages.AVPage;
 
 namespace UIgpt
 {
@@ -24,6 +26,8 @@ namespace UIgpt
         ToolStripComboBox cmbPorts;
         public static MainForm Instance { get; private set; }
         private NoLoadPageBuilder noLoadPage;
+        private IVWPageBuilder IVWPage;
+        private AVPageBuilder AVPage;
         private ShortCircuitPageBuilder shortCircuitPage;
         private RatioPageBuilder ratioPage;
 
@@ -38,12 +42,15 @@ namespace UIgpt
             PassportPageBuilder.Build(tabPassport);
             FieldBinder.BindCalculationEvents();
             TransformerCalculator.Calculate();
+
             /////////////////////////
             new DebugPageBuilder(tabOther);
             ratioPage = new RatioPageBuilder(tabRatio);
             shortCircuitPage = new ShortCircuitPageBuilder(tabShortCircuit);
             noLoadPage = new NoLoadPageBuilder(tabNoLoad);
             new ReportPageBuilder(tabReport);
+            IVWPage = new IVWPageBuilder(tabIVW);
+            AVPage = new AVPageBuilder(tabAV);
             // reportPage.PassportModel = PassportModel;
 
             //  reportPage.NoLoadSnapshots = NoLoadSnapshots;

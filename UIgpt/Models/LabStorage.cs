@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DocumentFormat.OpenXml.Office2013.WebExtension;
+using System;
 using System.Collections.Generic;
 
 namespace ElstanLab.Models
@@ -32,6 +33,116 @@ namespace ElstanLab.Models
         // Setting
         public static LabSettings labsett = new LabSettings();
 
+        // IVW (проверка стабильности U/I)
+        public static IVWSnapshot CurrentIVW = new IVWSnapshot();
+        public static List<IVWSnapshot> IVWSnapshots = new List<IVWSnapshot>();
+
+        // AV (проверка стабильности U/I)
+        public static AVSnapshot CurrentAV = new AVSnapshot();
+        public static List<AVSnapshot> AVSnapshots = new List<AVSnapshot>();
+
+    }
+
+    public class IVWSnapshot
+    {
+        //------------------------------------------------
+        // Time
+        //------------------------------------------------
+        public DateTime Time;
+
+        //------------------------------------------------
+        // Средние значения
+        //------------------------------------------------
+        public double UaMean;
+        public double UbMean;
+        public double UcMean;
+        public double Uavg;
+
+        public double IaMean;
+        public double IbMean;
+        public double IcMean;
+        public double Iavg;
+
+        //------------------------------------------------
+        // Максимальные относительные отклонения (%)
+        //------------------------------------------------
+        public double UaDev;
+        public double UbDev;
+        public double UcDev;
+        public double MaxUDev;
+
+        public double IaDev;
+        public double IbDev;
+        public double IcDev;
+        public double MaxIDev;
+
+        //------------------------------------------------
+        // Результат
+        //------------------------------------------------
+        public bool Passed;
+        public int rowcheckid = 0;
+
+        //------------------------------------------------
+        // Полные данные записи (для графика в отчёте)
+        //------------------------------------------------
+        public List<double> Times = new List<double>();
+        public List<double> Ua = new List<double>();
+        public List<double> Ub = new List<double>();
+        public List<double> Uc = new List<double>();
+        public List<double> Ia = new List<double>();
+        public List<double> Ib = new List<double>();
+        public List<double> Ic = new List<double>();
+    }
+
+    public class AVSnapshot
+    {
+        //------------------------------------------------
+        // Time
+        //------------------------------------------------
+        public DateTime Time;
+
+        //------------------------------------------------
+        // Средние значения
+        //------------------------------------------------
+        public double UaMean;
+        public double UbMean;
+        public double UcMean;
+        public double Uavg;
+
+        public double IaMean;
+        public double IbMean;
+        public double IcMean;
+        public double Iavg;
+
+        //------------------------------------------------
+        // Максимальные относительные отклонения (%)
+        //------------------------------------------------
+        public double UaDev;
+        public double UbDev;
+        public double UcDev;
+        public double MaxUDev;
+
+        public double IaDev;
+        public double IbDev;
+        public double IcDev;
+        public double MaxIDev;
+
+        //------------------------------------------------
+        // Результат
+        //------------------------------------------------
+        public bool Passed;
+        public int rowcheckid = 0;
+
+        //------------------------------------------------
+        // Полные данные записи (для графика в отчёте)
+        //------------------------------------------------
+        public List<double> Times = new List<double>();
+        public List<double> Ua = new List<double>();
+        public List<double> Ub = new List<double>();
+        public List<double> Uc = new List<double>();
+        public List<double> Ia = new List<double>();
+        public List<double> Ib = new List<double>();
+        public List<double> Ic = new List<double>();
     }
 
     public class RatioRealtimeData

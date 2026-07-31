@@ -87,7 +87,7 @@ namespace ElstanLab.Services
             }
             catch //(Exception ex)
             {
-               // System.Windows.Forms.MessageBox.Show(ex.ToString());
+                //System.Windows.Forms.MessageBox.Show(ex.ToString());
                 Disconnect();
             }
         }
@@ -139,9 +139,9 @@ namespace ElstanLab.Services
 
                         await Task.Delay(500);
                     }
-                    catch// (Exception ex)
+                    catch //(Exception ex)
                     {
-                       // System.Windows.Forms.MessageBox.Show(ex.ToString());
+                        //System.Windows.Forms.MessageBox.Show(ex.ToString());
                         Disconnect();
                     }
                 }

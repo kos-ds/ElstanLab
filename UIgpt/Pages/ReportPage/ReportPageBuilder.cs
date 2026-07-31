@@ -95,14 +95,17 @@ namespace ElstanLab.Pages.ReportPage
                     "Segoe UI",
                     10F);
 
-            cbType.DropDownStyle =
-                ComboBoxStyle.DropDownList;
+            cbType.DropDownStyle = ComboBoxStyle.DropDownList;
 
             cbType.Items.Add("Коэффициент трансформации"); 
 
             cbType.Items.Add("Сопротивление и потери КЗ");
 
             cbType.Items.Add("Потери и ток ХХ");
+
+            cbType.Items.Add("Индуцированное напряжение");
+
+            cbType.Items.Add("Приложенное напряжение");
 
             cbType.SelectedIndex = 0;
 
@@ -376,29 +379,25 @@ namespace ElstanLab.Pages.ReportPage
         {
             switch (cbType.SelectedIndex)
             {
-                //------------------------------------------------
-                // ХХ
-                //------------------------------------------------
 
                 case 0:
 
                     return new RatioReportBuilder().Build(); 
 
-                //------------------------------------------------
-                // КЗ
-                //------------------------------------------------
-
                 case 1:
 
                     return new ShortCircuitReportBuilder().Build();
 
-                //------------------------------------------------
-                // КТР
-                //------------------------------------------------
-
                 case 2:
 
                     return new NoLoadReportBuilder().Build();
+
+                case 3:  
+                    
+                    return new IVWReportBuilder().Build();   // ← новый
+
+                case 4:
+                    return new AVReportBuilder().Build();   // ← новый
             }
 
             return "";
@@ -425,6 +424,14 @@ namespace ElstanLab.Pages.ReportPage
                 case 2:
                     type = "RATIO";
                     break;
+
+                case 3: 
+                    type = "INDUCED"; 
+                    break;   // ← новый
+
+                case 4: 
+                    type = "APPLIED";
+                    break;   // ← новый
             }
 
             return

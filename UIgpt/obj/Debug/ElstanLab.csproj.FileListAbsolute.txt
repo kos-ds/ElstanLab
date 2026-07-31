@@ -146,3 +146,15 @@ D:\Chirchiq_ELSTAN\UIgpt\UIgpt\bin\Debug\HarfBuzzSharp.pdb
 D:\Chirchiq_ELSTAN\UIgpt\UIgpt\bin\Debug\ScottPlot.xml
 D:\Chirchiq_ELSTAN\UIgpt\UIgpt\bin\Debug\SkiaSharp.pdb
 D:\Chirchiq_ELSTAN\UIgpt\UIgpt\bin\Debug\SkiaSharp.HarfBuzz.pdb
+D:\Chirchiq_ELSTAN\UIgpt\UIgpt\bin\Debug\OpenTK.dll
+D:\Chirchiq_ELSTAN\UIgpt\UIgpt\bin\Debug\OpenTK.GLControl.dll
+D:\Chirchiq_ELSTAN\UIgpt\UIgpt\bin\Debug\ScottPlot.WinForms.dll
+D:\Chirchiq_ELSTAN\UIgpt\UIgpt\bin\Debug\SkiaSharp.Views.Desktop.Common.dll
+D:\Chirchiq_ELSTAN\UIgpt\UIgpt\bin\Debug\SkiaSharp.Views.WindowsForms.dll
+D:\Chirchiq_ELSTAN\UIgpt\UIgpt\bin\Debug\OpenTK.pdb
+D:\Chirchiq_ELSTAN\UIgpt\UIgpt\bin\Debug\OpenTK.xml
+D:\Chirchiq_ELSTAN\UIgpt\UIgpt\bin\Debug\OpenTK.GLControl.pdb
+D:\Chirchiq_ELSTAN\UIgpt\UIgpt\bin\Debug\OpenTK.GLControl.xml
+D:\Chirchiq_ELSTAN\UIgpt\UIgpt\bin\Debug\ScottPlot.WinForms.xml
+D:\Chirchiq_ELSTAN\UIgpt\UIgpt\bin\Debug\SkiaSharp.Views.Desktop.Common.pdb
+D:\Chirchiq_ELSTAN\UIgpt\UIgpt\bin\Debug\SkiaSharp.Views.WindowsForms.pdb
