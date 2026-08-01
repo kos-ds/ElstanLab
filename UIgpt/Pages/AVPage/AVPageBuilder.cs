@@ -1,8 +1,5 @@
-﻿using DocumentFormat.OpenXml.Drawing;
-using ElstanLab.Models;
+﻿using ElstanLab.Models;
 using ElstanLab.Services;
-using ElstanLab.Themes;
-using ElstanLab.UI;
 using ScottPlot;
 using ScottPlot.Plottables;
 using ScottPlot.WinForms;
@@ -20,74 +17,62 @@ namespace ElstanLab.Pages.AVPage
 {
     public class AVPageBuilder
     {
-        // Данные текущей записи (временно, пока идёт Recording)
+        // ===== Данные текущей записи =====
         private readonly List<double> recTimes = new List<double>();
         private readonly List<double> recUa = new List<double>();
-        private readonly List<double> recUb = new List<double>();
-        private readonly List<double> recUc = new List<double>();
         private readonly List<double> recIa = new List<double>();
-        private readonly List<double> recIb = new List<double>();
-        private readonly List<double> recIc = new List<double>();
-        private Label lblStatus;   // результат испытания
-        private MeterPacket lastPacket;
-        private double offsetU = 10;          // стартовое значение
-        private double offsetI = 2;
-        private bool offsetsInitialized = false;
 
-        private const double MinGapU = 5.0;
-        private const double MinGapI = .0;
-        private const double Factor = 1.3;    // насколько больше разброса фаз брать
+        private Label lblStatus;
+        private MeterPacket lastPacket;
 
         // ===== UI =====
-        private Label lblUa, lblUb, lblUc;
-        private Label lblIa, lblIb, lblIc;
+        private Label lblUa, lblUaP, lblIa;
+        private Label lblRequired, lblPercent, lblWindingInfo;
+        private ComboBox cmbWinding;
         private Label lblTimer;
-        private Button btnStart, btnStop, btnReset;
+        private Button btnStart, btnStop, btnReset, btnToReport;
+        private FormsPlot plotU, plotI;
+        private DataGridView gridResults;
 
-        private FormsPlot plotU;
-        private FormsPlot plotI;
-
-        // ===== DataLoggers (3 фазы напряжения + 3 фазы тока) =====
-        private DataLogger logUa, logUb, logUc;
-        private DataLogger logIa, logIb, logIc;
+        // ===== Логгеры =====
+        private DataLogger logUa, logIa;
 
         // ===== Состояние =====
         private enum ChartMode { Idle, Recording, Stopped }
         private ChartMode mode = ChartMode.Idle;
-
-        private readonly Stopwatch sw = new Stopwatch();   // общий таймер времени
-        private double t0 = 0;                             // момент нажатия ПУСК (в секундах от sw)
-        private const double HalfWindow = 90.0;            // ±90 сек
-        private const double RecordDuration = 60.0;        // запись 60 сек
-
-        private Timer uiTimer;                            // обновление таймера и Refresh
-
+        private readonly Stopwatch sw = new Stopwatch();
+        private double t0 = 0;
+        private const double HalfWindow = 90.0;
+        private double RecordDuration = LabStorage.labsett.AVTime;
+        private Timer uiTimer;
         private readonly TabPage page;
+
+        // Коэффициент делителя (напряжение приложенное = поданное * K)
+        private const double DividerK = 500.0;
 
         public AVPageBuilder(TabPage tabPage)
         {
             page = tabPage;
             Build();
             DataModelService.DataUpdated += OnDataUpdated;
-
             sw.Start();
-            uiTimer = new Timer();
-            uiTimer.Interval = 100; // 10 Гц достаточно
+
+            uiTimer = new Timer { Interval = 100 };
             uiTimer.Tick += UiTimer_Tick;
             uiTimer.Start();
         }
 
-        //------------------------------------------------
+        //================================================
         // UI
-        //------------------------------------------------
-        private Label CreateValueLabel()
+        //================================================
+        private Label CreateValueLabel(float fontSize = 12)
         {
-            return new Label()
+            return new Label
             {
                 Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Bottom,
                 TextAlign = ContentAlignment.MiddleCenter,
                 AutoSize = false,
-                Font = new Font("Consolas", 12, FontStyle.Bold),
+                Font = new Font("Consolas", fontSize, FontStyle.Bold),
                 Text = "---"
             };
         }
@@ -96,440 +81,466 @@ namespace ElstanLab.Pages.AVPage
         {
             page.Controls.Clear();
 
-            TableLayoutPanel main = new TableLayoutPanel();
-            main.Dock = DockStyle.Fill;
-            main.ColumnCount = 1;
-            main.RowCount = 4;
-            main.RowStyles.Add(new RowStyle(SizeType.Absolute, 120));
-            main.RowStyles.Add(new RowStyle(SizeType.Percent, 50));
-            main.RowStyles.Add(new RowStyle(SizeType.Percent, 50));
-            main.RowStyles.Add(new RowStyle(SizeType.Absolute, 55));
+            TableLayoutPanel main = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 1,
+                RowCount = 5
+            };
+            main.RowStyles.Add(new RowStyle(SizeType.Absolute, 145));   // верхняя панель
+            main.RowStyles.Add(new RowStyle(SizeType.Percent, 42));     // график U
+            main.RowStyles.Add(new RowStyle(SizeType.Percent, 42));     // график I
+            main.RowStyles.Add(new RowStyle(SizeType.Absolute, 160));   // таблица результатов
+            main.RowStyles.Add(new RowStyle(SizeType.Absolute, 55));    // кнопки
             page.Controls.Add(main);
 
-            // Top
             main.Controls.Add(BuildTopPanel(), 0, 0);
 
-            // Charts
-            plotU = BuildChart("Напряжение");
-            plotI = BuildChart("Ток");
+            plotU = BuildChart("Напряжение поданное / приложенное");
+            plotI = BuildChart("Ток утечки");
             main.Controls.Add(plotU, 0, 1);
             main.Controls.Add(plotI, 0, 2);
 
             InitLoggers();
 
-            // Buttons
-            main.Controls.Add(BuildBottomPanel(), 0, 3);
+            main.Controls.Add(BuildResultsGrid(), 0, 3);
+            main.Controls.Add(BuildBottomPanel(), 0, 4);
         }
 
         private TableLayoutPanel BuildTopPanel()
         {
-            TableLayoutPanel top = new TableLayoutPanel();
-            top.Dock = DockStyle.Fill;
-            top.ColumnCount = 2;
-            top.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
-            top.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
-            top.Controls.Add(BuildVoltageGroup(), 0, 0);
-            top.Controls.Add(BuildCurrentGroup(), 1, 0);
+            TableLayoutPanel top = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 2,
+                RowCount = 1
+            };
+            top.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 62));
+            top.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 38));
+
+            top.Controls.Add(BuildMeasurementsGroup(), 0, 0);
+            top.Controls.Add(BuildWindingGroup(), 1, 0);
             return top;
         }
 
-        private GroupBox BuildVoltageGroup()
+        private GroupBox BuildMeasurementsGroup()
         {
-            GroupBox gb = new GroupBox();
-            gb.Text = "Напряжение";
-            gb.Dock = DockStyle.Fill;
-            gb.Font = new Font("Segoe UI", 10, FontStyle.Bold);
+            GroupBox gb = new GroupBox
+            {
+                Text = "Текущие измерения",
+                Dock = DockStyle.Fill,
+                Font = new Font("Segoe UI", 10, FontStyle.Bold)
+            };
 
-            TableLayoutPanel t = new TableLayoutPanel();
-            t.Dock = DockStyle.Fill;
-            t.ColumnCount = 3;
-            t.RowCount = 2;
-            t.CellBorderStyle = TableLayoutPanelCellBorderStyle.Single;
+            TableLayoutPanel t = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 3,
+                RowCount = 2,
+                CellBorderStyle = TableLayoutPanelCellBorderStyle.Single
+            };
             for (int i = 0; i < 3; i++)
                 t.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.33f));
 
-            t.Controls.Add(new Label() { Text = "Ua", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter }, 0, 0);
-            t.Controls.Add(new Label() { Text = "Ub", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter }, 1, 0);
-            t.Controls.Add(new Label() { Text = "Uc", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter }, 2, 0);
+            t.Controls.Add(new Label { Text = "Поданное, В", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter }, 0, 0);
+            t.Controls.Add(new Label { Text = "Приложенное, кВ", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter }, 1, 0);
+            t.Controls.Add(new Label { Text = "Ток, мА", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter }, 2, 0);
 
             lblUa = CreateValueLabel();
-            lblUb = CreateValueLabel();
-            lblUc = CreateValueLabel();
-            t.Controls.Add(lblUa, 0, 1);
-            t.Controls.Add(lblUb, 1, 1);
-            t.Controls.Add(lblUc, 2, 1);
-
-            gb.Controls.Add(t);
-            return gb;
-        }
-
-        private GroupBox BuildCurrentGroup()
-        {
-            GroupBox gb = new GroupBox();
-            gb.Text = "Ток";
-            gb.Dock = DockStyle.Fill;
-            gb.Font = new Font("Segoe UI", 10, FontStyle.Bold);
-
-            TableLayoutPanel t = new TableLayoutPanel();
-            t.Dock = DockStyle.Fill;
-            t.ColumnCount = 3;
-            t.RowCount = 2;
-            t.CellBorderStyle = TableLayoutPanelCellBorderStyle.Single;
-            for (int i = 0; i < 3; i++)
-                t.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.33f));
-
-            t.Controls.Add(new Label() { Text = "Ia", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter }, 0, 0);
-            t.Controls.Add(new Label() { Text = "Ib", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter }, 1, 0);
-            t.Controls.Add(new Label() { Text = "Ic", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter }, 2, 0);
-
+            lblUaP = CreateValueLabel();
             lblIa = CreateValueLabel();
-            lblIb = CreateValueLabel();
-            lblIc = CreateValueLabel();
-            t.Controls.Add(lblIa, 0, 1);
-            t.Controls.Add(lblIb, 1, 1);
-            t.Controls.Add(lblIc, 2, 1);
+
+            t.Controls.Add(lblUa, 0, 1);
+            t.Controls.Add(lblUaP, 1, 1);
+            t.Controls.Add(lblIa, 2, 1);
 
             gb.Controls.Add(t);
             return gb;
         }
 
-        private void RecalculateOffsets(MeterPacket p)
+        private GroupBox BuildWindingGroup()
         {
-            // ----- Напряжение -----
-            double uMax = Math.Max(p.UL1_AB, Math.Max(p.UL1_BC, p.UL1_CA));
-            double uMin = Math.Min(p.UL1_AB, Math.Min(p.UL1_BC, p.UL1_CA));
-            double uRange = uMax - uMin;
+            GroupBox gb = new GroupBox
+            {
+                Text = "Испытываемая обмотка",
+                Dock = DockStyle.Fill,
+                Font = new Font("Segoe UI", 10, FontStyle.Bold)
+            };
 
-            double neededU = Math.Max(uRange * Factor, MinGapU);
-            if (neededU > offsetU)
-                offsetU = neededU;
+            TableLayoutPanel t = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 2,
+                RowCount = 4,
+                Padding = new Padding(6)
+            };
+            t.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 45));
+            t.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 55));
 
-            // ----- Ток -----
-            double iMax = Math.Max(p.I1_A, Math.Max(p.I1_B, p.I1_C));
-            double iMin = Math.Min(p.I1_A, Math.Min(p.I1_B, p.I1_C));
-            double iRange = iMax - iMin;
+            t.Controls.Add(new Label { Text = "Обмотка:", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft }, 0, 0);
 
-            double neededI = Math.Max(iRange * Factor, MinGapI);
-            if (neededI > offsetI)
-                offsetI = neededI;
+            cmbWinding = new ComboBox
+            {
+                Dock = DockStyle.Fill,
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                Font = new Font("Segoe UI", 11)
+            };
+            cmbWinding.Items.AddRange(new object[] { "ВН", "НН" });
+            cmbWinding.SelectedIndex = 0;
+            cmbWinding.SelectedIndexChanged += (s, e) => UpdateRequiredVoltage();
+            t.Controls.Add(cmbWinding, 1, 0);
 
-            // Обновляем легенду
-            logUa.LegendText = "Ua (+" + offsetU.ToString("F0") + ")";
-            logUb.LegendText = "Ub";
-            logUc.LegendText = "Uc (-" + offsetU.ToString("F0") + ")";
+            t.Controls.Add(new Label { Text = "Норма Uисп:", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft }, 0, 1);
+            lblRequired = CreateValueLabel(11);
+            lblRequired.ForeColor = Color.DarkBlue;
+            t.Controls.Add(lblRequired, 1, 1);
 
-            logIa.LegendText = "Ia (+" + offsetI.ToString("F1") + ")";
-            logIb.LegendText = "Ib";
-            logIc.LegendText = "Ic (-" + offsetI.ToString("F1") + ")";
+            t.Controls.Add(new Label { Text = "% от нормы:", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft }, 0, 2);
+            lblPercent = CreateValueLabel(14);
+            lblPercent.ForeColor = Color.DarkGreen;
+            t.Controls.Add(lblPercent, 1, 2);
+
+            lblWindingInfo = new Label
+            {
+                Dock = DockStyle.Fill,
+                TextAlign = ContentAlignment.MiddleLeft,
+                Font = new Font("Segoe UI", 8.5f),
+                ForeColor = Color.DimGray
+            };
+            t.Controls.Add(lblWindingInfo, 0, 3);
+            t.SetColumnSpan(lblWindingInfo, 2);
+
+            gb.Controls.Add(t);
+            UpdateRequiredVoltage();
+            return gb;
         }
+
+        private DataGridView BuildResultsGrid()
+        {
+            gridResults = new DataGridView
+            {
+                Dock = DockStyle.Fill,
+                AllowUserToAddRows = false,
+                AllowUserToDeleteRows = true,
+                ReadOnly = true,
+                SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+                MultiSelect = false,
+                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
+                RowHeadersVisible = false,
+                BackgroundColor = Color.White
+                
+            };
+
+            gridResults.MultiSelect = true;
+            gridResults.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+
+            gridResults.Columns.Add("Time", "Время");
+            gridResults.Columns.Add("Winding", "Обмотка");
+            gridResults.Columns.Add("RequiredU", "Норма, кВ");
+            gridResults.Columns.Add("Uavg", "Uср, кВ");
+            gridResults.Columns.Add("Percent", "%");
+            gridResults.Columns.Add("Iavg", "Iср, мА");
+            gridResults.Columns.Add("MaxUDev", "ΔU, %");
+            gridResults.Columns.Add("MaxIDev", "ΔI, %");
+            gridResults.Columns.Add("Result", "Результат");
+
+            gridResults.Columns["Time"].FillWeight = 90;
+            gridResults.Columns["Winding"].FillWeight = 55;
+            gridResults.Columns["Result"].FillWeight = 70;
+
+            // Храним полный snapshot в Tag строки
+            return gridResults;
+        }
+
+        private TableLayoutPanel BuildBottomPanel()
+        {
+            TableLayoutPanel p = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 7
+            };
+            p.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 100));
+            p.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 100));
+            p.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 100));
+            p.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 130)); // в отчёт
+            p.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 90));  // таймер
+            p.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 160)); // статус
+            p.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+
+            btnStart = new Button { Text = "ПУСК", Dock = DockStyle.Fill };
+            btnStart.Click += BtnStart_Click;
+
+            btnStop = new Button { Text = "СТОП", Dock = DockStyle.Fill };
+            btnStop.Click += BtnStop_Click;
+
+            btnReset = new Button { Text = "RESET", Dock = DockStyle.Fill };
+            btnReset.Click += BtnReset_Click;
+
+            btnToReport = new Button { Text = "В ОТЧЁТ", Dock = DockStyle.Fill };
+            btnToReport.Click += BtnToReport_Click;
+
+            lblTimer = CreateValueLabel(14);
+            lblTimer.Text = "00:00";
+
+            lblStatus = CreateValueLabel(11);
+            lblStatus.Text = "";
+
+            p.Controls.Add(btnStart, 0, 0);
+            p.Controls.Add(btnStop, 1, 0);
+            p.Controls.Add(btnReset, 2, 0);
+            p.Controls.Add(btnToReport, 3, 0);
+            p.Controls.Add(lblTimer, 4, 0);
+            p.Controls.Add(lblStatus, 5, 0);
+
+            return p;
+        }
+
         private FormsPlot BuildChart(string title)
         {
-            FormsPlot fp = new FormsPlot();
-            fp.Dock = DockStyle.Fill;
+            FormsPlot fp = new FormsPlot { Dock = DockStyle.Fill };
             fp.Plot.Title(title);
             fp.Plot.Axes.Bottom.Label.Text = "Время, сек";
             fp.Plot.ShowGrid();
-            // отключаем интерактивность, чтобы пользователь не сдвигал оси во время записи
             fp.UserInputProcessor.Disable();
             return fp;
         }
 
         private void InitLoggers()
         {
-            // ----- Напряжение -----
             logUa = plotU.Plot.Add.DataLogger();
-            logUb = plotU.Plot.Add.DataLogger();
-            logUc = plotU.Plot.Add.DataLogger();
-
-            logUa.LegendText = "Ua (+" + offsetU + ")";
-            logUb.LegendText = "Ub ";
-            logUc.LegendText = "Uc (-" + offsetU + ")";
-
+            logUa.LegendText = "U поданное";
             logUa.Color = Colors.Red;
-            logUb.Color = Colors.LimeGreen;
-            logUc.Color = Colors.DodgerBlue;
-
             logUa.ManageAxisLimits = false;
-            logUb.ManageAxisLimits = false;
-            logUc.ManageAxisLimits = false;
 
-            // ----- Ток -----
             logIa = plotI.Plot.Add.DataLogger();
-            logIb = plotI.Plot.Add.DataLogger();
-            logIc = plotI.Plot.Add.DataLogger();
-
-            logIa.LegendText = "Ia (+" + offsetI + ")";
-            logIb.LegendText = "Ib ";
-            logIc.LegendText = "Ic (-" + offsetI + ")";
-
-            logIa.Color = Colors.Red;
-            logIb.Color = Colors.LimeGreen;
-            logIc.Color = Colors.DodgerBlue;
-
+            logIa.LegendText = "I";
+            logIa.Color = Colors.DodgerBlue;
             logIa.ManageAxisLimits = false;
-            logIb.ManageAxisLimits = false;
-            logIc.ManageAxisLimits = false;
 
             plotU.Plot.ShowLegend(Alignment.UpperRight);
             plotI.Plot.ShowLegend(Alignment.UpperRight);
 
-            // Вертикальная линия центра
             plotU.Plot.Add.VerticalLine(0, color: Colors.Gray.WithAlpha(0.6f), width: 1.5f, pattern: LinePattern.Dashed);
             plotI.Plot.Add.VerticalLine(0, color: Colors.Gray.WithAlpha(0.6f), width: 1.5f, pattern: LinePattern.Dashed);
 
             SetIdleLimits();
         }
-        private void InitLoggers1()
+
+        //================================================
+        // Нормы испытательного напряжения
+        //================================================
+        private double GetRequiredAppliedVoltage(string winding)
         {
-            // Напряжение
-            logUa = plotU.Plot.Add.DataLogger();
-            logUb = plotU.Plot.Add.DataLogger();
-            logUc = plotU.Plot.Add.DataLogger();
+            PassportModel p = LabStorage.Passport;
+            double classKV = (winding == "ВН") ? p.HVVoltage : p.LVVoltage;
 
-            logUa.LegendText = "Ua";
-            logUb.LegendText = "Ub";
-            logUc.LegendText = "Uc";
+            // Заводские значения (нормальная изоляция) по ГОСТ / ПУЭ
+            if (classKV <= 0.69) return 5.0;
+            if (classKV <= 3.0) return 18.0;
+            if (classKV <= 6.0) return 25.0;
+            if (classKV <= 10.0) return 35.0;
+            if (classKV <= 15.0) return 45.0;
+            if (classKV <= 20.0) return 55.0;
+            if (classKV <= 35.0) return 85.0;
+            if (classKV <= 110) return 200.0;
+            if (classKV <= 150) return 230.0;
+            if (classKV <= 220) return 325.0;
 
-            logUa.Color = Colors.Red;
-            logUb.Color = Colors.Green;
-            logUc.Color = Colors.Blue;
-
-            logUa.ManageAxisLimits = false;
-            logUb.ManageAxisLimits = false;
-            logUc.ManageAxisLimits = false;
-
-            // Начальный диапазон Y (чтобы не было пустоты)
-            plotU.Plot.Axes.SetLimitsY(0, 600);   // подстрой под свои напряжения
-            plotI.Plot.Axes.SetLimitsY(0, 50);     // подстрой под свои токи
-
-            // Ток
-            logIa = plotI.Plot.Add.DataLogger();
-            logIb = plotI.Plot.Add.DataLogger();
-            logIc = plotI.Plot.Add.DataLogger();
-
-            logIa.LegendText = "Ia";
-            logIb.LegendText = "Ib";
-            logIc.LegendText = "Ic";
-
-            logIa.Color = Colors.Red;
-            logIb.Color = Colors.Green;
-            logIc.Color = Colors.Blue;
-
-            logIa.ManageAxisLimits = false;
-            logIb.ManageAxisLimits = false;
-            logIc.ManageAxisLimits = false;
-
-            plotU.Plot.ShowLegend();
-            plotI.Plot.ShowLegend();
-
-            // Вертикальная линия центра (будет двигаться в Idle, фиксироваться при Recording)
-            plotU.Plot.Add.VerticalLine(0, color: Colors.Gray.WithAlpha(0.6f), width: 1.5f, pattern: LinePattern.Dashed);
-            plotI.Plot.Add.VerticalLine(0, color: Colors.Gray.WithAlpha(0.6f), width: 1.5f, pattern: LinePattern.Dashed);
-
-            SetIdleLimits();
-        }
-        private void AutoScaleY(bool allowShrink = false)
-        {
-            // Сначала обычный автомасштаб
-            plotU.Plot.Axes.AutoScaleY();
-            plotI.Plot.Axes.AutoScaleY();
-
-            var limU = plotU.Plot.Axes.GetLimits();
-            var limI = plotI.Plot.Axes.GetLimits();
-
-            // Добавляем небольшой запас (padding)
-            double padU = Math.Max((limU.Top - limU.Bottom) * 0.08, 5);
-            double padI = Math.Max((limI.Top - limI.Bottom) * 0.08, 1);
-
-            if (allowShrink)
-            {
-                // Можно и расширять, и сжимать (для Idle)
-                plotU.Plot.Axes.SetLimitsY(limU.Bottom - padU, limU.Top + padU);
-                plotI.Plot.Axes.SetLimitsY(limI.Bottom - padI, limI.Top + padI);
-            }
-            else
-            {
-                // Только расширяем (для Recording) — никогда не сжимаем
-                var curU = plotU.Plot.Axes.GetLimits();
-                var curI = plotI.Plot.Axes.GetLimits();
-
-                double newBottomU = Math.Min(curU.Bottom, limU.Bottom - padU);
-                double newTopU = Math.Max(curU.Top, limU.Top + padU);
-                plotU.Plot.Axes.SetLimitsY(newBottomU, newTopU);
-
-                double newBottomI = Math.Min(curI.Bottom, limI.Bottom - padI);
-                double newTopI = Math.Max(curI.Top, limI.Top + padI);
-                plotI.Plot.Axes.SetLimitsY(newBottomI, newTopI);
-            }
-        }
-        private void AutoScaleY0()
-        {
-            // Автомасштаб только по Y, X не трогаем
-            plotU.Plot.Axes.AutoScaleY();
-            plotI.Plot.Axes.AutoScaleY();
-
-            // Небольшой запас сверху/снизу (5%)
-            var limU = plotU.Plot.Axes.GetLimits();
-            double padU = (limU.Top - limU.Bottom) * 0.05;
-            if (padU < 1) padU = 1;
-            plotU.Plot.Axes.SetLimitsY(limU.Bottom - padU, limU.Top + padU);
-
-            var limI = plotI.Plot.Axes.GetLimits();
-            double padI = (limI.Top - limI.Bottom) * 0.05;
-            if (padI < 0.5) padI = 0.5;
-            plotI.Plot.Axes.SetLimitsY(limI.Bottom - padI, limI.Top + padI);
+            return 0; // выше — смотреть уровень изоляции
         }
 
-        private TableLayoutPanel BuildBottomPanel1()
+        private void UpdateRequiredVoltage()
         {
-            TableLayoutPanel p = new TableLayoutPanel();
-            p.Dock = DockStyle.Fill;
-            p.ColumnCount = 5;
-            p.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 120));
-            p.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 120));
-            p.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 120));
-            p.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 140));
-            p.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            string wind = cmbWinding.SelectedItem?.ToString() ?? "ВН";
+            double req = GetRequiredAppliedVoltage(wind);
+            lblRequired.Text = req > 0 ? $"{req:F1} кВ" : "—";
 
-            btnStart = new Button() { Text = "ПУСК", Dock = DockStyle.Fill };
-            btnStart.Click += BtnStart_Click;
-
-            btnStop = new Button() { Text = "СТОП", Dock = DockStyle.Fill };
-            btnStop.Click += BtnStop_Click;
-
-            btnReset = new Button() { Text = "RESET", Dock = DockStyle.Fill };
-            btnReset.Click += BtnReset_Click;
-
-            lblTimer = CreateValueLabel();
-            lblTimer.Text = "00:00";
-
-            p.Controls.Add(btnStart, 0, 0);
-            p.Controls.Add(btnStop, 1, 0);
-            p.Controls.Add(btnReset, 2, 0);
-            p.Controls.Add(lblTimer, 4, 0);
-
-            return p;
+            PassportModel p = LabStorage.Passport;
+            double classKV = (wind == "ВН") ? p.HVVoltage : p.LVVoltage;
+            lblWindingInfo.Text = $"Класс обмотки: {classKV:F2} кВ";
         }
 
-        private TableLayoutPanel BuildBottomPanel()
-        {
-            TableLayoutPanel p = new TableLayoutPanel();
-            p.Dock = DockStyle.Fill;
-            p.ColumnCount = 6;
-            p.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 110));
-            p.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 110));
-            p.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 110));
-            p.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 100)); // таймер
-            p.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 160)); // статус
-            p.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-
-            btnStart = new Button() { Text = "ПУСК", Dock = DockStyle.Fill };
-            btnStart.Click += BtnStart_Click;
-
-            btnStop = new Button() { Text = "СТОП", Dock = DockStyle.Fill };
-            btnStop.Click += BtnStop_Click;
-
-            btnReset = new Button() { Text = "RESET", Dock = DockStyle.Fill };
-            btnReset.Click += BtnReset_Click;
-
-            lblTimer = CreateValueLabel();
-            lblTimer.Text = "00:00";
-            lblTimer.Font = new Font("Consolas", 14, FontStyle.Bold);
-
-            lblStatus = CreateValueLabel();
-            lblStatus.Text = "";
-            lblStatus.Font = new Font("Segoe UI", 11, FontStyle.Bold);
-
-            p.Controls.Add(btnStart, 0, 0);
-            p.Controls.Add(btnStop, 1, 0);
-            p.Controls.Add(btnReset, 2, 0);
-            p.Controls.Add(lblTimer, 3, 0);
-            p.Controls.Add(lblStatus, 4, 0);
-
-            return p;
-        }
-        //------------------------------------------------
-        // Логика режимов
-        //------------------------------------------------        
+        //================================================
+        // Логика кнопок
+        //================================================
         private void BtnStart_Click(object sender, EventArgs e)
         {
             if (mode == ChartMode.Recording) return;
 
-            // Очищаем предыдущую запись
             recTimes.Clear();
-            recUa.Clear(); recUb.Clear(); recUc.Clear();
-            recIa.Clear(); recIb.Clear(); recIc.Clear();
-
-            if (lastPacket != null)
-                RecalculateOffsets(lastPacket);
-
-            AutoScaleY(allowShrink: true);
+            recUa.Clear();
+            recIa.Clear();
 
             t0 = sw.Elapsed.TotalSeconds;
             mode = ChartMode.Recording;
-
             SetRecordingLimits();
 
             btnStart.Enabled = false;
             btnStop.Enabled = true;
+            cmbWinding.Enabled = false;
+
             lblStatus.Text = "Идёт запись...";
             lblStatus.ForeColor = Color.DarkOrange;
         }
 
-        private void AnalyzeRecording()
+        private void BtnStop_Click(object sender, EventArgs e)
         {
-            if (recTimes.Count < 10)
+            if (mode != ChartMode.Recording) return;
+
+            mode = ChartMode.Stopped;
+            btnStart.Enabled = true;
+            btnStop.Enabled = false;
+            cmbWinding.Enabled = true;
+
+            AnalyzeAndSave();
+        }
+
+        private void BtnReset_Click(object sender, EventArgs e)
+        {
+            mode = ChartMode.Idle;
+
+            logUa.Data.Coordinates.Clear();
+            logIa.Data.Coordinates.Clear();
+
+            recTimes.Clear();
+            recUa.Clear();
+            recIa.Clear();
+
+            lblStatus.Text = "";
+            sw.Restart();
+            t0 = 0;
+
+            SetIdleLimits();
+            btnStart.Enabled = true;
+            btnStop.Enabled = true;
+            cmbWinding.Enabled = true;
+            lblTimer.Text = "00:00";
+
+            plotU.Refresh();
+            plotI.Refresh();
+        }
+
+        private void BtnToReport_Click(object sender, EventArgs e)
+        {
+            if (gridResults.SelectedRows.Count == 0)
+            {
+                MessageBox.Show("Выберите одну или несколько строк в таблице результатов.",
+                    "Внимание", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            // Очищаем список для отчёта
+            LabStorage.AVSnapshotsForReport.Clear();
+
+            foreach (DataGridViewRow row in gridResults.SelectedRows)
+            {
+                if (row.Tag is AVSnapshot snap)
+                {
+                    LabStorage.AVSnapshotsForReport.Add(snap);
+                }
+            }
+
+            // Для совместимости со старым кодом тоже заполняем CurrentAV (последний выбранный)
+            if (LabStorage.AVSnapshotsForReport.Count > 0)
+                LabStorage.CurrentAV = LabStorage.AVSnapshotsForReport[0];
+
+            string msg = LabStorage.AVSnapshotsForReport.Count == 1
+                ? "Выбрана 1 запись для отчёта."
+                : $"Выбрано записей для отчёта: {LabStorage.AVSnapshotsForReport.Count}";
+
+            MessageBox.Show(msg, "Готово", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+        private void BtnToReport_Click1(object sender, EventArgs e)
+        {
+            if (gridResults.SelectedRows.Count == 0)
+            {
+                MessageBox.Show("Выберите строку в таблице результатов.", "Внимание",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            var row = gridResults.SelectedRows[0];
+            if (row.Tag is AVSnapshot snap)
+            {
+                LabStorage.CurrentAV = snap; // или Clone, если нужно
+                MessageBox.Show($"Запись «{snap.Winding}» загружена в отчёт.", "Готово",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+
+        //================================================
+        // Анализ и сохранение в таблицу
+        //================================================
+        private void AnalyzeAndSave()
+        {
+            if (recTimes.Count < 5)
             {
                 SetStatus(false, "Мало данных");
                 return;
             }
 
-            var snap = LabStorage.CurrentAV;
-            snap.Time = DateTime.Now;
+            string winding = cmbWinding.SelectedItem?.ToString() ?? "ВН";
+            double requiredU = GetRequiredAppliedVoltage(winding);
 
-            // Копируем сырые данные
+            // Переводим поданное напряжение в приложенное (кВ)
+            List<double> appliedUa = new List<double>();
+            foreach (var v in recUa)
+                appliedUa.Add(v * DividerK / 1000.0); // В → кВ
+
+            double uaMean = Mean(appliedUa);
+            double iaMean = Mean(recIa);
+
+            double uaDev = MaxRelativeDeviation(appliedUa, uaMean);
+            double iaDev = MaxRelativeDeviation(recIa, iaMean);
+
+            double limit = LabStorage.labsett.AVDeviation;
+            bool okU = uaDev <= limit;
+            bool okI = iaDev <= limit;
+            bool passed = okU && okI && (requiredU <= 0 || Math.Abs(uaMean - requiredU) / requiredU * 100 < 15); // ±15% от нормы как доп. критерий
+
+            // Создаём snapshot
+            var snap = new AVSnapshot
+            {
+                Time = DateTime.Now,
+                Winding = winding,
+                RequiredU = requiredU,
+                UaMean = uaMean,
+                Uavg = uaMean,
+                IaMean = iaMean,
+                Iavg = iaMean,
+                UaDev = uaDev,
+                MaxUDev = uaDev,
+                IaDev = iaDev,
+                MaxIDev = iaDev,
+                Passed = passed
+            };
+
             snap.Times.Clear();
-            snap.Ua.Clear(); snap.Ub.Clear(); snap.Uc.Clear();
-            snap.Ia.Clear(); snap.Ib.Clear(); snap.Ic.Clear();
-
+            snap.Ua.Clear();
+            snap.Ia.Clear();
             snap.Times.AddRange(recTimes);
-            snap.Ua.AddRange(recUa);
-            snap.Ub.AddRange(recUb);
-            snap.Uc.AddRange(recUc);
+            // сохраняем уже в кВ
+            snap.Ua.AddRange(appliedUa);
             snap.Ia.AddRange(recIa);
-            snap.Ib.AddRange(recIb);
-            snap.Ic.AddRange(recIc);
 
-            // Расчёт средних и отклонений
-            snap.UaMean = Mean(recUa);
-            snap.UbMean = Mean(recUb);
-            snap.UcMean = Mean(recUc);
-            snap.Uavg = (snap.UaMean + snap.UbMean + snap.UcMean) / 3.0;
+            // Добавляем в таблицу
+            int idx = gridResults.Rows.Add(
+                snap.Time.ToString("HH:mm:ss"),
+                snap.Winding,
+                snap.RequiredU.ToString("F1"),
+                snap.Uavg.ToString("F2"),
+                (requiredU > 0 ? (snap.Uavg / requiredU * 100).ToString("F1") : "—"),
+                snap.Iavg.ToString("F2"),
+                snap.MaxUDev.ToString("F2"),
+                snap.MaxIDev.ToString("F2"),
+                snap.Passed ? "ПРОЙДЕНО" : "НЕ ПРОЙДЕНО"
+            );
 
-            snap.IaMean = Mean(recIa);
-            snap.IbMean = Mean(recIb);
-            snap.IcMean = Mean(recIc);
-            snap.Iavg = (snap.IaMean + snap.IbMean + snap.IcMean) / 3.0;
+            gridResults.Rows[idx].Tag = snap;
+            gridResults.Rows[idx].DefaultCellStyle.ForeColor = snap.Passed ? Color.DarkGreen : Color.DarkRed;
 
-            snap.UaDev = MaxRelativeDeviation(recUa, snap.UaMean);
-            snap.UbDev = MaxRelativeDeviation(recUb, snap.UbMean);
-            snap.UcDev = MaxRelativeDeviation(recUc, snap.UcMean);
-            snap.MaxUDev = Math.Max(snap.UaDev, Math.Max(snap.UbDev, snap.UcDev));
-
-            snap.IaDev = MaxRelativeDeviation(recIa, snap.IaMean);
-            snap.IbDev = MaxRelativeDeviation(recIb, snap.IbMean);
-            snap.IcDev = MaxRelativeDeviation(recIc, snap.IcMean);
-            snap.MaxIDev = Math.Max(snap.IaDev, Math.Max(snap.IbDev, snap.IcDev));
-
-            // Критерий 20 %
-            const double limit = 20.0;   // %
-            bool okU = snap.MaxUDev <= limit;
-            bool okI = snap.MaxIDev <= limit;
-
-            snap.Passed = okU && okI;
-
-            // Можно сразу добавить в историю (как у вас сделано на других страницах)
-            // LabStorage.AVSnapshots.Add(CloneSnapshot(snap)); // если нужно
+            // Можно сразу сделать текущим
+            LabStorage.CurrentAV = snap;
 
             SetStatus(snap.Passed, snap.Passed ? "ПРОЙДЕНО" : "НЕ ПРОЙДЕНО");
         }
@@ -542,14 +553,9 @@ namespace ElstanLab.Pages.AVPage
             return sum / values.Count;
         }
 
-        /// <summary>
-        /// Максимальное относительное отклонение от среднего в процентах
-        /// </summary>
         private double MaxRelativeDeviation(List<double> values, double mean)
         {
-            if (values.Count == 0 || Math.Abs(mean) < 1e-9)
-                return 999.0;   // заведомо плохо
-
+            if (values.Count == 0 || Math.Abs(mean) < 1e-9) return 999.0;
             double maxDev = 0;
             foreach (var v in values)
             {
@@ -559,175 +565,68 @@ namespace ElstanLab.Pages.AVPage
             return (maxDev / Math.Abs(mean)) * 100.0;
         }
 
-        private void AnalyzeRecording0()
-        {
-            if (recTimes.Count < 10)   // слишком мало точек
-            {
-                SetStatus(false, "Мало данных");
-                return;
-            }
-
-            bool okU = CheckDeviation(recUa, 0.20);
-            bool okI = CheckDeviation(recIa, 0.20) &&
-                       CheckDeviation(recIb, 0.20) &&
-                       CheckDeviation(recIc, 0.20);
-
-            // Можно проверять и напряжения пофазно:
-            // bool okU = CheckDeviation(recUa, 0.20) &&
-            //            CheckDeviation(recUb, 0.20) &&
-            //            CheckDeviation(recUc, 0.20);
-
-            bool passed = okU && okI;
-
-            SetStatus(passed, passed ? "ПРОЙДЕНО" : "НЕ ПРОЙДЕНО");
-        }
-
-        /// <summary>
-        /// Проверяет, что максимальное отклонение от среднего ≤ maxRel (0.20 = 20%)
-        /// </summary>
-        private bool CheckDeviation(List<double> values, double maxRel)
-        {
-            if (values.Count == 0) return false;
-
-            double sum = 0;
-            foreach (var v in values) sum += v;
-            double mean = sum / values.Count;
-
-            if (Math.Abs(mean) < 1e-6)   // почти ноль — считаем провалом
-                return false;
-
-            double maxDev = 0;
-            foreach (var v in values)
-            {
-                double dev = Math.Abs(v - mean);
-                if (dev > maxDev) maxDev = dev;
-            }
-
-            return (maxDev / Math.Abs(mean)) <= maxRel;
-        }
         private void SetStatus(bool passed, string text)
         {
             lblStatus.Text = text;
             lblStatus.ForeColor = passed ? Color.LimeGreen : Color.OrangeRed;
         }
 
-        private void AnalyzeRecording1()
+        //================================================
+        // Таймер UI
+        //================================================
+        private void UiTimer_Tick(object sender, EventArgs e)
         {
-            if (recTimes.Count < 10)
+            if (mode == ChartMode.Idle)
             {
-                SetStatus(false, "Мало данных");
-                return;
+                SetIdleLimits();
+                AutoScaleY(true);
+                plotU.Refresh();
+                plotI.Refresh();
+                lblTimer.Text = "00:00";
             }
+            else if (mode == ChartMode.Recording)
+            {
+                double elapsed = sw.Elapsed.TotalSeconds - t0;
+                if (elapsed >= RecordDuration)
+                {
+                    mode = ChartMode.Stopped;
+                    btnStart.Enabled = true;
+                    btnStop.Enabled = false;
+                    cmbWinding.Enabled = true;
+                    AnalyzeAndSave();
+                }
 
-            var snap = LabStorage.CurrentAV;
-            snap.Time = DateTime.Now;
-
-            // Копируем сырые данные
-            snap.Times.Clear();
-            snap.Ua.Clear(); snap.Ub.Clear(); snap.Uc.Clear();
-            snap.Ia.Clear(); snap.Ib.Clear(); snap.Ic.Clear();
-
-            snap.Times.AddRange(recTimes);
-            snap.Ua.AddRange(recUa);
-            snap.Ub.AddRange(recUb);
-            snap.Uc.AddRange(recUc);
-            snap.Ia.AddRange(recIa);
-            snap.Ib.AddRange(recIb);
-            snap.Ic.AddRange(recIc);
-
-            // Расчёт средних и отклонений
-            snap.UaMean = Mean(recUa);
-            snap.UbMean = Mean(recUb);
-            snap.UcMean = Mean(recUc);
-            snap.Uavg = (snap.UaMean + snap.UbMean + snap.UcMean) / 3.0;
-
-            snap.IaMean = Mean(recIa);
-            snap.IbMean = Mean(recIb);
-            snap.IcMean = Mean(recIc);
-            snap.Iavg = (snap.IaMean + snap.IbMean + snap.IcMean) / 3.0;
-
-            snap.UaDev = MaxRelativeDeviation(recUa, snap.UaMean);
-            snap.UbDev = MaxRelativeDeviation(recUb, snap.UbMean);
-            snap.UcDev = MaxRelativeDeviation(recUc, snap.UcMean);
-            snap.MaxUDev = Math.Max(snap.UaDev, Math.Max(snap.UbDev, snap.UcDev));
-
-            snap.IaDev = MaxRelativeDeviation(recIa, snap.IaMean);
-            snap.IbDev = MaxRelativeDeviation(recIb, snap.IbMean);
-            snap.IcDev = MaxRelativeDeviation(recIc, snap.IcMean);
-            snap.MaxIDev = Math.Max(snap.IaDev, Math.Max(snap.IbDev, snap.IcDev));
-
-            // Критерий 20 %
-            const double limit = 20.0;   // %
-            bool okU = snap.MaxUDev <= limit;
-            bool okI = snap.MaxIDev <= limit;
-
-            snap.Passed = okU && okI;
-
-            // Можно сразу добавить в историю (как у вас сделано на других страницах)
-            // LabStorage.AVSnapshots.Add(CloneSnapshot(snap)); // если нужно
-
-            SetStatus(snap.Passed, snap.Passed ? "ПРОЙДЕНО" : "НЕ ПРОЙДЕНО");
+                int sec = (int)elapsed;
+                lblTimer.Text = $"{sec / 60:00}:{sec % 60:00}";
+                AutoScaleY(false);
+                plotU.Refresh();
+                plotI.Refresh();
+            }
         }
 
-       
-
-       
-
-        private void BtnStop_Click1(object sender, EventArgs e)
+        private void AutoScaleY(bool allowShrink)
         {
-            if (mode != ChartMode.Recording) return;
+            plotU.Plot.Axes.AutoScaleY();
+            plotI.Plot.Axes.AutoScaleY();
 
-            mode = ChartMode.Stopped;
-            btnStart.Enabled = true;
-            btnStop.Enabled = false;
-        }
+            var limU = plotU.Plot.Axes.GetLimits();
+            var limI = plotI.Plot.Axes.GetLimits();
 
-        private void BtnStop_Click(object sender, EventArgs e)
-        {
-            if (mode != ChartMode.Recording) return;
+            double padU = Math.Max((limU.Top - limU.Bottom) * 0.08, 2);
+            double padI = Math.Max((limI.Top - limI.Bottom) * 0.08, 0.5);
 
-            mode = ChartMode.Stopped;
-            btnStart.Enabled = true;
-            btnStop.Enabled = false;
-
-            AnalyzeRecording();   // ← анализ
-        }
-
-        private void BtnReset_Click(object sender, EventArgs e)
-        {
-            mode = ChartMode.Idle;
-
-            // Очистка данных
-            logUa.Data.Coordinates.Clear();
-            logUb.Data.Coordinates.Clear();
-            logUc.Data.Coordinates.Clear();
-            logIa.Data.Coordinates.Clear();
-            logIb.Data.Coordinates.Clear();
-            logIc.Data.Coordinates.Clear();
-            // в BtnReset_Click добавьте:
-            recTimes.Clear();
-            recUa.Clear(); recUb.Clear(); recUc.Clear();
-            recIa.Clear(); recIb.Clear(); recIc.Clear();
-
-            lblStatus.Text = "";
-            // LabStorage.CurrentAV можно не трогать — он останется последним результатом
-            // Сброс таймера времени (чтобы не накапливать огромные числа)
-            sw.Restart();
-            t0 = 0;
-
-            // Сбросим offset в разумные значения по умолчанию
-            offsetU = 10;
-            offsetI = 5;
-            offsetsInitialized = false;
-
-            SetIdleLimits();
-
-            btnStart.Enabled = true;
-            btnStop.Enabled = true;
-            lblTimer.Text = "00:00";
-
-            plotU.Refresh();
-            plotI.Refresh();
+            if (allowShrink)
+            {
+                plotU.Plot.Axes.SetLimitsY(limU.Bottom - padU, limU.Top + padU);
+                plotI.Plot.Axes.SetLimitsY(limI.Bottom - padI, limI.Top + padI);
+            }
+            else
+            {
+                var curU = plotU.Plot.Axes.GetLimits();
+                var curI = plotI.Plot.Axes.GetLimits();
+                plotU.Plot.Axes.SetLimitsY(Math.Min(curU.Bottom, limU.Bottom - padU), Math.Max(curU.Top, limU.Top + padU));
+                plotI.Plot.Axes.SetLimitsY(Math.Min(curI.Bottom, limI.Bottom - padI), Math.Max(curI.Top, limI.Top + padI));
+            }
         }
 
         private void SetIdleLimits()
@@ -735,8 +634,6 @@ namespace ElstanLab.Pages.AVPage
             double now = sw.Elapsed.TotalSeconds;
             plotU.Plot.Axes.SetLimitsX(now - HalfWindow, now + HalfWindow);
             plotI.Plot.Axes.SetLimitsX(now - HalfWindow, now + HalfWindow);
-
-            // Вертикальная линия в центре
             UpdateCenterLine(now);
         }
 
@@ -749,57 +646,15 @@ namespace ElstanLab.Pages.AVPage
 
         private void UpdateCenterLine(double x)
         {
-            // Удаляем старые линии и добавляем новую (простой способ)
             plotU.Plot.Remove<VerticalLine>();
             plotI.Plot.Remove<VerticalLine>();
-
             plotU.Plot.Add.VerticalLine(x, color: Colors.Gray.WithAlpha(0.7f), width: 1.5f, pattern: LinePattern.Dashed);
             plotI.Plot.Add.VerticalLine(x, color: Colors.Gray.WithAlpha(0.7f), width: 1.5f, pattern: LinePattern.Dashed);
         }
 
-        //------------------------------------------------
-        // Таймер UI + авто-стоп
-        //------------------------------------------------
-        private void UiTimer_Tick(object sender, EventArgs e)
-        {
-            if (mode == ChartMode.Idle)
-            {
-                SetIdleLimits();
-                //AutoScaleY();             // ← Y автомасштаб
-                // Автомасштаб по Y (только по видимым данным)
-                //plotU.Plot.Axes.AutoScaleY();
-                //plotI.Plot.Axes.AutoScaleY();
-                AutoScaleY(allowShrink: true);   // ← полный автомасштаб
-                plotU.Refresh();
-                plotI.Refresh();
-                lblTimer.Text = "00:00";
-            }
-            else if (mode == ChartMode.Recording)
-            {
-                double elapsed = sw.Elapsed.TotalSeconds - t0;
-
-                // Авто-стоп через 60 секунд
-                if (elapsed >= RecordDuration)
-                {
-                    mode = ChartMode.Stopped;
-                    btnStart.Enabled = true;
-                    btnStop.Enabled = false;
-                    AnalyzeRecording();          // ← анализ после авто-стопа
-                }
-
-                int sec = (int)elapsed;
-                lblTimer.Text = string.Format("{0:00}:{1:00}", sec / 60, sec % 60);
-
-                AutoScaleY(allowShrink: false);
-                plotU.Refresh();
-                plotI.Refresh();
-            }
-            // Stopped — ничего не делаем, график заморожен
-        }
-
-        //------------------------------------------------
+        //================================================
         // Приход данных
-        //------------------------------------------------
+        //================================================
         private void OnDataUpdated(MeterPacket p)
         {
             if (page.InvokeRequired)
@@ -807,67 +662,54 @@ namespace ElstanLab.Pages.AVPage
                 page.BeginInvoke(new Action(() => OnDataUpdated(p)));
                 return;
             }
+            if (((TabControl)page.Parent).SelectedTab != page) return;
 
-            if (((TabControl)page.Parent).SelectedTab != page)
-                return;
             lastPacket = p;
+            RecordDuration = LabStorage.labsett.AVTime;
+
             // Цифры
-            lblUa.Text = p.UL1_AB.ToString("F1");
-            lblUb.Text = p.UL1_BC.ToString("F1");
-            lblUc.Text = p.UL1_CA.ToString("F1");
+            double supplied = p.UL1_AB;                 // поданное, В
+            double appliedKV = supplied * DividerK / 1000.0; // приложенное, кВ
+
+            lblUa.Text = supplied.ToString("F1");
+            lblUaP.Text = appliedKV.ToString("F2");
             lblIa.Text = p.I1_A.ToString("F2");
-            lblIb.Text = p.I1_B.ToString("F2");
-            lblIc.Text = p.I1_C.ToString("F2");
 
-            // Графики — добавляем только в Idle и Recording
-            if (mode == ChartMode.Stopped)
-                return;
-
-            // === Автоматический offset ===
-            // Первый раз — всегда
-            // Потом — только если сигнал вырос
-            if (!offsetsInitialized || mode == ChartMode.Idle || mode == ChartMode.Recording)
+            // % от нормы
+            string wind = cmbWinding.SelectedItem?.ToString() ?? "ВН";
+            double req = GetRequiredAppliedVoltage(wind);
+            if (req > 0)
             {
-                RecalculateOffsets(p);
-                offsetsInitialized = true;
+                double pct = appliedKV / req * 100.0;
+                lblPercent.Text = $"{pct:F1} %";
+                lblPercent.ForeColor = pct > 105 ? Color.OrangeRed :
+                                       pct > 95 ? Color.DarkGreen : Color.DarkOrange;
             }
+            else
+            {
+                lblPercent.Text = "—";
+            }
+
+            if (mode == ChartMode.Stopped) return;
 
             double t = sw.Elapsed.TotalSeconds;
 
-
-            // В Idle обрезаем старые точки (чтобы не рос бесконечно)
             if (mode == ChartMode.Idle)
             {
-                double minKeep = t - HalfWindow - 5; // небольшой запас
+                double minKeep = t - HalfWindow - 5;
                 TrimOld(logUa, minKeep);
-                TrimOld(logUb, minKeep);
-                TrimOld(logUc, minKeep);
                 TrimOld(logIa, minKeep);
-                TrimOld(logIb, minKeep);
-                TrimOld(logIc, minKeep);
             }
 
-            // Сохраняем сырые значения только во время записи
             if (mode == ChartMode.Recording)
             {
                 recTimes.Add(t);
-                recUa.Add(p.UL1_AB);
-                recUb.Add(p.UL1_BC);
-                recUc.Add(p.UL1_CA);
+                recUa.Add(supplied);   // сохраняем поданное
                 recIa.Add(p.I1_A);
-                recIb.Add(p.I1_B);
-                recIc.Add(p.I1_C);
             }
 
-            // Напряжение — разносим по вертикали
-            logUa.Add(t, p.UL1_AB + offsetU);
-            logUb.Add(t, p.UL1_BC);
-            logUc.Add(t, p.UL1_CA - offsetU);
-
-            // Ток — разносим по вертикали
-            logIa.Add(t, p.I1_A + offsetI);
-            logIb.Add(t, p.I1_B);
-            logIc.Add(t, p.I1_C - offsetI);
+            logUa.Add(t, supplied);
+            logIa.Add(t, p.I1_A);
         }
 
         private void TrimOld(DataLogger logger, double minX)
@@ -876,10 +718,8 @@ namespace ElstanLab.Pages.AVPage
             int removeCount = 0;
             for (int i = 0; i < coords.Count; i++)
             {
-                if (coords[i].X < minX)
-                    removeCount++;
-                else
-                    break;
+                if (coords[i].X < minX) removeCount++;
+                else break;
             }
             if (removeCount > 0)
                 coords.RemoveRange(0, removeCount);

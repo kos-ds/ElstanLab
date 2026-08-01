@@ -41,6 +41,8 @@ namespace ElstanLab.Models
         public static AVSnapshot CurrentAV = new AVSnapshot();
         public static List<AVSnapshot> AVSnapshots = new List<AVSnapshot>();
 
+        public static List<AVSnapshot> AVSnapshotsForReport { get; set; } = new List<AVSnapshot>();
+
     }
 
     public class IVWSnapshot
@@ -96,55 +98,77 @@ namespace ElstanLab.Models
 
     public class AVSnapshot
     {
-        //------------------------------------------------
-        // Time
-        //------------------------------------------------
-        public DateTime Time;
+        public DateTime Time { get; set; }
+        public string Winding { get; set; } = "ВН";   // "ВН" или "НН"
+        public double RequiredU { get; set; }          // норма, кВ
 
-        //------------------------------------------------
-        // Средние значения
-        //------------------------------------------------
-        public double UaMean;
-        public double UbMean;
-        public double UcMean;
-        public double Uavg;
+        public List<double> Times { get; set; } = new List<double>();
+        public List<double> Ua { get; set; } = new List<double>(); // уже в кВ
+        public List<double> Ub { get; set; } = new List<double>();
+        public List<double> Uc { get; set; } = new List<double>();
+        public List<double> Ia { get; set; } = new List<double>();
+        public List<double> Ib { get; set; } = new List<double>();
+        public List<double> Ic { get; set; } = new List<double>();
 
-        public double IaMean;
-        public double IbMean;
-        public double IcMean;
-        public double Iavg;
+        public double UaMean, Uavg;
+        public double IaMean, Iavg;
+        public double UaDev, MaxUDev;
+        public double IaDev, MaxIDev;
 
-        //------------------------------------------------
-        // Максимальные относительные отклонения (%)
-        //------------------------------------------------
-        public double UaDev;
-        public double UbDev;
-        public double UcDev;
-        public double MaxUDev;
-
-        public double IaDev;
-        public double IbDev;
-        public double IcDev;
-        public double MaxIDev;
-
-        //------------------------------------------------
-        // Результат
-        //------------------------------------------------
-        public bool Passed;
-        public int rowcheckid = 0;
-
-        //------------------------------------------------
-        // Полные данные записи (для графика в отчёте)
-        //------------------------------------------------
-        public List<double> Times = new List<double>();
-        public List<double> Ua = new List<double>();
-        public List<double> Ub = new List<double>();
-        public List<double> Uc = new List<double>();
-        public List<double> Ia = new List<double>();
-        public List<double> Ib = new List<double>();
-        public List<double> Ic = new List<double>();
+        public bool Passed { get; set; }
     }
 
+    /*   public class AVSnapshot
+       {
+           //------------------------------------------------
+           // Time
+           //------------------------------------------------
+           public DateTime Time;
+
+           //------------------------------------------------
+           // Средние значения
+           //------------------------------------------------
+           public double UaMean;
+           public double UbMean;
+           public double UcMean;
+           public double Uavg;
+
+           public double IaMean;
+           public double IbMean;
+           public double IcMean;
+           public double Iavg;
+
+           //------------------------------------------------
+           // Максимальные относительные отклонения (%)
+           //------------------------------------------------
+           public double UaDev;
+           public double UbDev;
+           public double UcDev;
+           public double MaxUDev;
+
+           public double IaDev;
+           public double IbDev;
+           public double IcDev;
+           public double MaxIDev;
+
+           //------------------------------------------------
+           // Результат
+           //------------------------------------------------
+           public bool Passed;
+           public int rowcheckid = 0;
+
+           //------------------------------------------------
+           // Полные данные записи (для графика в отчёте)
+           //------------------------------------------------
+           public List<double> Times = new List<double>();
+           public List<double> Ua = new List<double>();
+           public List<double> Ub = new List<double>();
+           public List<double> Uc = new List<double>();
+           public List<double> Ia = new List<double>();
+           public List<double> Ib = new List<double>();
+           public List<double> Ic = new List<double>();
+       }
+    */
     public class RatioRealtimeData
     {
         public double HvAB;
@@ -341,6 +365,10 @@ namespace ElstanLab.Models
         //////////////////////////////////////////////////
         // Общие
         //////////////////////////////////////////////////
+        public double IVWTime = 60.0;
+        public double IVWDeviation = 20.0;
+        public double AVTime = 60.0;
+        public double AVDeviation = 20.0;
 
         public bool AutoSelectSnapshot = true;
         public bool status;

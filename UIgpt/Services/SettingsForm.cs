@@ -20,13 +20,20 @@ namespace ElstanLab.UI
 
         NumericUpDown numRatio;
         NumericUpDown kDeviation;
+
+        NumericUpDown IVWTime;
+        NumericUpDown AVTime;
+
+        NumericUpDown IVWDeviat;
+        NumericUpDown AVDeviat;
+
         CheckBox chkAuto;
 
         public SettingsForm()
         {
             Text = "Настройки";
             Width = 420;
-            Height = 500;
+            Height = 660;
             StartPosition = FormStartPosition.CenterParent;
             FormBorderStyle = FormBorderStyle.FixedDialog;
             AutoSize = true;
@@ -70,6 +77,7 @@ namespace ElstanLab.UI
 
             GroupBox gb2 = new GroupBox();
             gb2.Text = "Испытание КЗ";
+            gb2.Dock = DockStyle.Top;
             gb2.Height = 140;
 
             TableLayoutPanel t2 = CreateTable();
@@ -88,6 +96,7 @@ namespace ElstanLab.UI
 
             GroupBox gb3 = new GroupBox();
             gb3.Text = "Коэффициент трансформации";
+            gb3.Dock = DockStyle.Top;
             gb3.Height = 80;
 
             TableLayoutPanel t3 = CreateTable();
@@ -96,6 +105,24 @@ namespace ElstanLab.UI
             kDeviation = AddRow(t3, 1, "Несимметрия между фазами");
 
             gb3.Controls.Add(t3);
+
+            //////////////////////////////////////////////////////
+            // Время тестирования IVW AV 
+            //////////////////////////////////////////////////////
+
+            GroupBox gb4 = new GroupBox();
+            gb4.Text = "Тестирование IVW и AV";
+            gb4.Dock = DockStyle.Top;
+            gb4.Height = 160;
+
+            TableLayoutPanel t4 = CreateTable();
+
+            IVWTime = AddRow(t4, 0, "Время теста Индуцированным, с",0,1);
+            IVWDeviat = AddRow(t4, 1, "Отклонение IVW, %");
+            AVTime = AddRow(t4, 2, "Время теста Приложенным, с",0,1 );
+            AVDeviat = AddRow(t4, 3, "Отклонение AV, %");
+
+            gb4.Controls.Add(t4);
 
             //////////////////////////////////////////////////////
             // Общие
@@ -132,6 +159,7 @@ namespace ElstanLab.UI
             main.Controls.Add(gb1);
             main.Controls.Add(gb2);
             main.Controls.Add(gb3);
+            main.Controls.Add(gb4);
             main.Controls.Add(chkAuto);
             main.Controls.Add(buttons);
         }
@@ -150,7 +178,7 @@ namespace ElstanLab.UI
             return t;
         }
 
-        NumericUpDown AddRow(TableLayoutPanel t, int row, string text)
+        NumericUpDown AddRow(TableLayoutPanel t, int row, string text, int decplace = 1,decimal incr = 0.1M)
         {
             Label l = new Label();
 
@@ -160,10 +188,10 @@ namespace ElstanLab.UI
 
             NumericUpDown n = new NumericUpDown();
 
-            n.DecimalPlaces = 1;
+            n.DecimalPlaces = decplace; //1
             n.Maximum = 10000;
             n.Minimum = 0;
-            n.Increment = 0.1M;
+            n.Increment = incr;// 0.1M;
             n.Dock = DockStyle.Fill;
 
             t.Controls.Add(l, 0, row);
@@ -189,6 +217,12 @@ namespace ElstanLab.UI
 
             kDeviation.Value = (decimal)LabStorage.labsett.RatioKdeviation;
 
+            IVWTime.Value = (decimal)LabStorage.labsett.IVWTime;
+            AVTime.Value = (decimal)LabStorage.labsett.AVTime;
+
+            IVWDeviat.Value = (decimal)LabStorage.labsett.IVWDeviation; 
+            AVDeviat.Value = (decimal)LabStorage.labsett.AVDeviation;
+
             chkAuto.Checked = LabStorage.labsett.AutoSelectSnapshot;
         }
 
@@ -208,6 +242,12 @@ namespace ElstanLab.UI
             LabStorage.labsett.RatioDeviation = (double)numRatio.Value;
 
             LabStorage.labsett.RatioKdeviation = (double)kDeviation.Value;
+
+            LabStorage.labsett.IVWTime = (double)IVWTime.Value;
+            LabStorage.labsett.AVTime = (double)AVTime.Value;
+
+            LabStorage.labsett.IVWDeviation = (double)IVWDeviat.Value;
+            LabStorage.labsett.AVDeviation = (double)AVDeviat.Value;
 
             LabStorage.labsett.AutoSelectSnapshot = chkAuto.Checked;
 

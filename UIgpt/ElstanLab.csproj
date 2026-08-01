@@ -167,7 +167,6 @@
     <Compile Include="Models\TrendPoint.cs" />
     <Compile Include="Pages\AVPage\AVPageBuilder.cs" />
     <Compile Include="Pages\IVWPage\IVWPageBuilder.cs" />
-    <Compile Include="Pages\IVWPage\IvwPageBuilder1.cs" />
     <Compile Include="Pages\NoLoadPage\NoLoadCalculator.cs" />
     <Compile Include="Pages\NoLoadPage\NoLoadPageBuilder.cs" />
     <Compile Include="Pages\RatioPage\RatioCalculator.cs" />

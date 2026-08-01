@@ -13,7 +13,7 @@ namespace ElstanLab.Services
                 "ElstanLab");
 
         private static readonly string FileName =
-            Path.Combine(Folder, "settings.dat");
+            Path.Combine(Folder, "settings2.dat");
 
         //////////////////////////////////////////////////
         // SAVE
@@ -39,6 +39,10 @@ namespace ElstanLab.Services
 
                 bw.Write(LabStorage.labsett.RatioDeviation);
                 bw.Write(LabStorage.labsett.RatioKdeviation);
+                bw.Write(LabStorage.labsett.IVWTime);
+                bw.Write(LabStorage.labsett.AVTime);
+                bw.Write(LabStorage.labsett.IVWDeviation);
+                bw.Write(LabStorage.labsett.AVDeviation);
 
                 bw.Write(LabStorage.labsett.AutoSelectSnapshot);
             }
@@ -74,6 +78,14 @@ namespace ElstanLab.Services
                 LabStorage.labsett.RatioDeviation = br.ReadDouble();
 
                 LabStorage.labsett.RatioKdeviation = br.ReadDouble();
+                
+                LabStorage.labsett.IVWTime = br.ReadDouble();
+                
+                LabStorage.labsett.AVTime = br.ReadDouble();
+
+                LabStorage.labsett.IVWDeviation = br.ReadDouble();
+
+                LabStorage.labsett.AVDeviation = br.ReadDouble();
 
                 LabStorage.labsett.AutoSelectSnapshot = br.ReadBoolean();
             }

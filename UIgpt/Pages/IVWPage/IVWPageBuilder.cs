@@ -59,7 +59,7 @@ namespace ElstanLab.Pages.IVWPage
         private readonly Stopwatch sw = new Stopwatch();   // общий таймер времени
         private double t0 = 0;                             // момент нажатия ПУСК (в секундах от sw)
         private const double HalfWindow = 90.0;            // ±90 сек
-        private const double RecordDuration = 60.0;        // запись 60 сек
+        private double RecordDuration = LabStorage.labsett.IVWTime;// 60.0;        // запись 60 сек
 
         private Timer uiTimer;                            // обновление таймера и Refresh
 
@@ -416,7 +416,7 @@ namespace ElstanLab.Pages.IVWPage
 
         private void AnalyzeRecording()
         {
-            if (recTimes.Count < 10)
+            if (recTimes.Count < 5)
             {
                 SetStatus(false, "Мало данных");
                 return;
@@ -460,7 +460,7 @@ namespace ElstanLab.Pages.IVWPage
             snap.MaxIDev = Math.Max(snap.IaDev, Math.Max(snap.IbDev, snap.IcDev));
 
             // Критерий 20 %
-            const double limit = 20.0;   // %
+            double limit = LabStorage.labsett.IVWDeviation;// 20.0;   // %
             bool okU = snap.MaxUDev <= limit;
             bool okI = snap.MaxIDev <= limit;
 
@@ -655,6 +655,7 @@ namespace ElstanLab.Pages.IVWPage
             if (((TabControl)page.Parent).SelectedTab != page)
                 return;
             lastPacket = p;
+            RecordDuration = LabStorage.labsett.IVWTime;
             // Цифры
             lblUa.Text = p.UL1_AB.ToString("F1");
             lblUb.Text = p.UL1_BC.ToString("F1");
