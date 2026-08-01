@@ -55,6 +55,8 @@ namespace ElstanLab.Pages.ShortCircuitPage
         private Label lblInom;
         private Label lblUkExpected;
 
+        private Label wendingType;
+
         //////////////////////////////////////////////////
         // Mode
         //////////////////////////////////////////////////
@@ -78,6 +80,10 @@ namespace ElstanLab.Pages.ShortCircuitPage
         private Label lblPkOtklon;
 
         private Label lblSetCurrent;
+
+        private NumericUpDown numWindingTemp;
+        private ComboBox cmbMaterial;
+        private Label lblTempFactor;
 
         //------------------------------------------------
         // ctor
@@ -411,45 +417,66 @@ namespace ElstanLab.Pages.ShortCircuitPage
         private GroupBox BuildExpectedGroup()
         {
             GroupBox gb = new GroupBox();
-
-            gb.Text = "Режим испытания";
-
+            gb.Text = "Режим испытания / температура";
             gb.Dock = DockStyle.Fill;
-
             gb.Font = new Font("Segoe UI", 10, FontStyle.Bold);
 
             TableLayoutPanel t = new TableLayoutPanel();
-
             t.Dock = DockStyle.Fill;
-
-            t.ColumnCount = 3;
-
+            t.ColumnCount = 6;
             t.RowCount = 2;
-
             t.CellBorderStyle = TableLayoutPanelCellBorderStyle.Single;
-
-            t.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33));
-            t.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33));
-            t.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33));
+            for (int i = 0; i < 6; i++)
+                t.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 16.67f));
 
             gb.Controls.Add(t);
 
             t.Controls.Add(new Label() { Text = "Iном", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter }, 0, 0);
-            t.Controls.Add(new Label() { Text = "Uкз ожидаемое", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter }, 1, 0);
+            t.Controls.Add(new Label() { Text = "Uкз ожид.", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter }, 1, 0);
             t.Controls.Add(new Label() { Text = "Ток %", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter }, 2, 0);
-            
-
+            t.Controls.Add(new Label() { Text = "t обм., °C", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter }, 3, 0);
+            t.Controls.Add(new Label() { Text = "Материал обм.", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter }, 4, 0);
+            t.Controls.Add(new Label() { Text = "k_t → 75°C", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter }, 5, 0);
+          //  t.Controls.Add(new Label() { Text = "Примечание", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter }, 6, 0);
             lblInom = CreateValueLabel();
             lblUkExpected = CreateValueLabel();
             lblCurrentPercent = CreateValueLabel();
-          
+            lblTempFactor = CreateValueLabel();
+
+            numWindingTemp = new NumericUpDown
+            {
+                DecimalPlaces = 1,
+                Minimum = -20,
+                Maximum = 150,
+                Increment = 0.5M,
+                Value = 20,
+                Dock = DockStyle.Fill,
+                Font = new Font("Consolas", 11, FontStyle.Bold),
+                TextAlign = HorizontalAlignment.Center
+            };
+
+            cmbMaterial = new ComboBox
+            {
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                Dock = DockStyle.Fill,
+                Font = new Font("Segoe UI", 10, FontStyle.Bold)
+            };
+           // cmbMaterial.Items.AddRange(new object[] { "Cu (медь)", "Al (алюминий)" });
+           // cmbMaterial.SelectedIndex = LabStorage.Passport.wendtype;// WindingMaterial == "Al" ? 1 : 0;
+
+            wendingType = CreateValueLabel();
+
             t.Controls.Add(lblInom, 0, 1);
             t.Controls.Add(lblUkExpected, 1, 1);
             t.Controls.Add(lblCurrentPercent, 2, 1);
-         
-            return gb;
-        }        
+            t.Controls.Add(numWindingTemp, 3, 1);
+            t.Controls.Add(wendingType, 4, 1);
+            t.Controls.Add(lblTempFactor, 5, 1);
+          //  t.Controls.Add(wendingType, 6, 1);
 
+            return gb;
+        }
+        
         private GroupBox BuildResultGroup()
         {
             GroupBox gb = new GroupBox();
@@ -641,14 +668,9 @@ namespace ElstanLab.Pages.ShortCircuitPage
             if (((TabControl)page.Parent).SelectedTab != page) return;
             LabStorage.labsett.sendData = "c";
 
-            /*
-            CurrentTransformer ct = CurrentTransformerSelector.Get(LabStorage.Passport.IHV);
-            LabStorage.labsett.sendData = ct.Command;
-            lblSetCurrent.Text = "Установите ТТ в положение " + ct.Divider*5 + " А";
-            bool kctis = ct.Divider == p.Kct;
 
-            lblSetCurrent.ForeColor = kctis ? Color.LimeGreen : Color.Red;
-            */
+         //   cmbMaterial.SelectedIndex = LabStorage.Passport.wendtype;// WindingMaterial == "Al" ? 1 : 0;
+            wendingType.Text = LabStorage.Passport.wendtype == 1 ? "Al (алюминий)" : "Cu (медь)"; //"Cu (медь)", "Al (алюминий)" 
             //////////////////////////////////////////////////
             // Voltage
             //////////////////////////////////////////////////
@@ -747,8 +769,62 @@ namespace ElstanLab.Pages.ShortCircuitPage
             //////////////////////////////////////////////////
             // Result mode
             //////////////////////////////////////////////////
+            lblUk1.Text = uk.ToString("F2");
+            lblPtotal1.Text = p.PTOTAL.ToString("F0");
 
+            double correctedUk = ShortCircuitCalculator.RecalculateUk(uk, iavg, inom);
+            double lossesAtInom = ShortCircuitCalculator.RecalculateLosses(p.PTOTAL, iavg, inom);
 
+            // Температурная коррекция
+            double windingTemp = (double)numWindingTemp.Value;
+            double referenceTemp = LabStorage.Passport.ReferenceTemp;
+            //string material = cmbMaterial.SelectedIndex == 1 ? "Al" : "Cu";
+            string material = LabStorage.Passport.wendtype == 1 ? "Al" : "Cu";
+            LabStorage.Passport.WindingMaterial = material;
+
+            double tempFactor = ShortCircuitCalculator.CalcTempFactor(
+                windingTemp, referenceTemp, material);
+
+            double correctedPk = ShortCircuitCalculator.CorrectLossesToReferenceTemp(
+                lossesAtInom, windingTemp, referenceTemp, material);
+
+            lblTempFactor.Text = tempFactor.ToString("F4");
+
+            lblCorrectedUk.Text = correctedUk.ToString("F2") + " %";
+            lblCorrectedPk.Text = correctedPk.ToString("F0");
+
+            lblUkPassp.Text = currentData.UkPassp.ToString("F2");
+            lblPkPassp.Text = currentData.PkPassp.ToString("F0");
+
+            currentData.UkOtklon = currentData.UkPassp != 0
+                ? Math.Abs((correctedUk - currentData.UkPassp) / currentData.UkPassp) * 100.0
+                : 0;
+            currentData.PkOtklon = currentData.PkPassp != 0
+                ? Math.Abs((correctedPk - currentData.PkPassp) / currentData.PkPassp) * 100.0
+                : 0;
+
+            lblUkOtklon.Text = currentData.UkOtklon.ToString("F1");
+            lblPkOtklon.Text = currentData.PkOtklon.ToString("F1");
+
+            bool ok2 = Math.Abs(currentData.UkOtklon) <= LabStorage.labsett.ShortCircuitUkDeviation;
+            lblUkOtklon.ForeColor = ok2 ? Color.LimeGreen : Color.Red;
+            bool ok3 = Math.Abs(currentData.PkOtklon) <= LabStorage.labsett.ShortCircuitPkDeviation;
+            lblPkOtklon.ForeColor = ok3 ? Color.LimeGreen : Color.Red;
+
+            double currentPercent = inom != 0 ? iavg / inom * 100.0 : 0;
+            bool recalc = currentPercent < 95.0;
+            lblCurrentPercent.Text = currentPercent.ToString("F1") + " %";
+
+            currentData.Recalculated = recalc;
+            currentData.CurrentPercent = currentPercent;
+            currentData.LossesAtNominalCurrent = lossesAtInom;
+            currentData.CorrectedLosses = correctedPk;
+            currentData.CorrectedUkPercent = correctedUk;
+            currentData.WindingTemp = windingTemp;
+            currentData.ReferenceTemp = referenceTemp;
+            currentData.WindingMaterial = material;
+            currentData.TempFactor = tempFactor;
+            /*
             lblUk1.Text = uk.ToString("F2");
             lblPtotal1.Text = p.PTOTAL.ToString("F0");
 
@@ -794,6 +870,7 @@ namespace ElstanLab.Pages.ShortCircuitPage
             currentData.CorrectedLosses = correctedPk;
 
             currentData.CorrectedUkPercent = correctedUk;
+            */
 
             //////////////////////////////////////////////////
             // Storage
@@ -940,6 +1017,12 @@ namespace ElstanLab.Pages.ShortCircuitPage
             s.UkOtklon = currentData.UkOtklon;
             s.PkOtklon = currentData.PkOtklon;
 
+            s.LossesAtNominalCurrent = currentData.LossesAtNominalCurrent;
+            s.WindingTemp = currentData.WindingTemp;
+            s.ReferenceTemp = currentData.ReferenceTemp;
+            s.WindingMaterial = currentData.WindingMaterial;
+            s.TempFactor = currentData.TempFactor;
+
             snapshots.Add(s);
 
             AddSnapshotToGrid(s);
@@ -1026,6 +1109,12 @@ namespace ElstanLab.Pages.ShortCircuitPage
             s.PkPassp = currentData.PkPassp;
             s.UkOtklon = currentData.UkOtklon;
             s.PkOtklon = currentData.PkOtklon;
+
+            s.LossesAtNominalCurrent = currentData.LossesAtNominalCurrent;
+            s.WindingTemp = currentData.WindingTemp;
+            s.ReferenceTemp = currentData.ReferenceTemp;
+            s.WindingMaterial = currentData.WindingMaterial;
+            s.TempFactor = currentData.TempFactor;
 
             snapshots.Add(s);
 

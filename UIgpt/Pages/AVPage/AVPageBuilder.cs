@@ -664,6 +664,8 @@ namespace ElstanLab.Pages.AVPage
             }
             if (((TabControl)page.Parent).SelectedTab != page) return;
 
+            LabStorage.labsett.sendData = "k";
+
             lastPacket = p;
             RecordDuration = LabStorage.labsett.AVTime;
 

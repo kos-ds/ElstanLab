@@ -654,6 +654,10 @@ namespace ElstanLab.Pages.IVWPage
 
             if (((TabControl)page.Parent).SelectedTab != page)
                 return;
+
+            LabStorage.labsett.sendData = "c";
+
+
             lastPacket = p;
             RecordDuration = LabStorage.labsett.IVWTime;
             // Цифры

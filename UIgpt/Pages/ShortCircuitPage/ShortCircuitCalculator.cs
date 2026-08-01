@@ -185,5 +185,53 @@ namespace ElstanLab.Pages.ShortCircuitPage
                 * (nominalCurrent
                 / measuredCurrent);
         }
+
+        //////////////////////////////////////////////////
+        // Температурная коррекция (ГОСТ 3484.1 / IEC 60076-1)
+        // Tk = 235 (Cu), 225 (Al); θ_ref обычно 75 °C
+        //////////////////////////////////////////////////
+
+        public static double GetTk(string material)
+        {
+            if (string.IsNullOrWhiteSpace(material))
+                return 235.0;
+
+            material = material.Trim().ToUpperInvariant();
+
+            if (material == "AL" || material == "АЛЮМИНИЙ" || material == "АЛ")
+                return 225.0;
+
+            return 235.0;
+        }
+
+        public static double CalcTempFactor(
+            double windingTemp,
+            double referenceTemp,
+            string material)
+        {
+            double tk = GetTk(material);
+            double denom = tk + windingTemp;
+            if (Math.Abs(denom) < 1e-9)
+                return 1.0;
+            return (tk + referenceTemp) / denom;
+        }
+
+        public static double CorrectLossesToReferenceTemp(
+            double lossesAtNominal,
+            double windingTemp,
+            double referenceTemp,
+            string material)
+        {
+            return lossesAtNominal * CalcTempFactor(windingTemp, referenceTemp, material);
+        }
+
+        public static double CorrectResistanceToReferenceTemp(
+            double resistanceAtTemp,
+            double windingTemp,
+            double referenceTemp,
+            string material)
+        {
+            return resistanceAtTemp * CalcTempFactor(windingTemp, referenceTemp, material);
+        }
     }
 }

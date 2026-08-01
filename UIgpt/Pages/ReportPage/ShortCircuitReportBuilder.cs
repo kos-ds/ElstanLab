@@ -270,7 +270,8 @@ caption
             AddRow4(sb, "Номинальная мощность, кВА", p.PowerKva.ToString("F0"), "Охлаждение", p.Cooling);
             AddRow4(sb, "Частота, Гц", "50", "Напряжение Uкз, %", p.UkPercent.ToString("F1"));
             AddRow4(sb, "Группа соединения", p.VectorGroup, "Ток ХХ паспорт, %", p.I0Percent.ToString("F2"));
-
+            string matName = p.WindingMaterial == "Al" ? "Алюминий" : "Медь";
+            AddRow4(sb, "Материал обмотки", matName, "Опорная t, °C", p.ReferenceTemp.ToString("F0"));
             sb.AppendLine(@"
             </table>
             </div>
@@ -349,11 +350,36 @@ caption
 
             sb.AppendLine("</table>");
 
+            string matName = s.WindingMaterial == "Al" ? "Алюминий" : "Медь";
+
+            sb.AppendLine(@"
+<table class='compact'>
+<caption> 3. Температурная коррекция </caption>
+<tr>
+<th>t обмотки, °C</th>
+<th>t опорная, °C</th>
+<th>Материал</th>
+<th>k<sub>t</sub></th>
+<th>Pk при Iном, Вт</th>
+<th>Pk привед. к t<sub>оп</sub>, Вт</th>
+</tr>
+");
+            sb.AppendLine($@"
+<tr class='center'>
+<td>{s.WindingTemp:F1}</td>
+<td>{s.ReferenceTemp:F1}</td>
+<td>{matName}</td>
+<td>{s.TempFactor:F4}</td>
+<td>{s.LossesAtNominalCurrent:F0}</td>
+<td>{s.CorrectedLosses:F0}</td>
+</tr>
+");
+            sb.AppendLine("</table>");
 
             sb.AppendLine(@"
 <table class='compact'>
 
-<caption> 3. Расчетные параметры короткого замыкания </caption>
+<caption> 4. Расчетные параметры короткого замыкания </caption>
 
 <tr>
 <th>Uкз-ожид, В</th>
@@ -394,7 +420,7 @@ caption
             sb.AppendLine(@"
 <table class='compact'>
 
-<caption> 4 . Проверка соответствия паспортным данным </caption>
+<caption> 5 . Проверка соответствия паспортным данным </caption>
 
 <tr>
 <th>Параметр</th>
@@ -440,15 +466,29 @@ caption
 
 <div class='noBreak'>
 <div class='divcaption'>
-5. Заключение
+6. Заключение
 </div>
 ");
 
+            /*     sb.AppendLine($@"
+     <div class='{cls2}'>
+     По результатам испытания короткого замыкания после приведения к нормируемой температуре получены следующие значения: напряжение короткого замыкания Uкз = {s.CorrectedUkPercent:F2}% (паспортное значение {p.UkPercent:F2}%), потери нагрузки Pк = {s.CorrectedLosses:F0} Вт (паспортное значение {p.PkLoss:F0} Вт). Отклонение по Uкз составило {s.UkOtklon:F2}%, по потерям нагрузки — {s.PkOtklon:F2}%.
+     <br>
+     Полученные результаты {text} требованиям нормативной документации и паспортным данным.
+     </div>
+     ");*/
+
+            string matText = s.WindingMaterial == "Al" ? "алюминий" : "медь";
+
             sb.AppendLine($@"
 <div class='{cls2}'>
-По результатам испытания короткого замыкания после приведения к нормируемой температуре получены следующие значения: напряжение короткого замыкания Uкз = {s.CorrectedUkPercent:F2}% (паспортное значение {p.UkPercent:F2}%), потери нагрузки Pк = {s.CorrectedLosses:F0} Вт (паспортное значение {p.PkLoss:F0} Вт). Отклонение по Uкз составило {s.UkOtklon:F2}%, по потерям нагрузки — {s.PkOtklon:F2}%.
+По результатам испытания КЗ после приведения к Iном и к опорной температуре {s.ReferenceTemp:F0} °C
+(материал — {matText}, t при измерении {s.WindingTemp:F1} °C, k<sub>t</sub> = {s.TempFactor:F4})
+получены: Uкз = {s.CorrectedUkPercent:F2}% (паспорт {p.UkPercent:F2}%),
+Pк = {s.CorrectedLosses:F0} Вт (паспорт {p.PkLoss:F0} Вт).
+Отклонение Uкз: {s.UkOtklon:F2}%, Pк: {s.PkOtklon:F2}%.
 <br>
-Полученные результаты {text} требованиям нормативной документации и паспортным данным.
+Полученные результаты {text} требованиям НД и паспортным данным.
 </div>
 ");
 

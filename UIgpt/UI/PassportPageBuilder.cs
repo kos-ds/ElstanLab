@@ -70,12 +70,21 @@ namespace ElstanLab.UI
                 //  new FieldInfo("Примечание","txtNote",FieldType.MultiLine)
 
                 new FieldInfo(
-                        "Выбрать тип",
+                        "Тип трансформатора",
                         "cmbTransformer",
                         FieldType.ComboBox)
                     {
                         DataSource = TransformerCatalog.Types
                     },
+
+                new FieldInfo(
+                    "Материал обмотки",
+                    "cmbMaterial",
+                    FieldType.ComboBox)
+                {
+                    Items = new[] { "Cu (медь)", "Al (алюминий)" },
+                    DefaultIndex = 1
+                }
             });
 
             TextBox txtCustomer = ControlRegistry.Get<TextBox>("txtCustomer");
@@ -109,14 +118,22 @@ namespace ElstanLab.UI
             };
 
 
-            TextBox txtEngineer =
-                ControlRegistry.Get<TextBox>("txtEngineer");
+            TextBox txtEngineer = ControlRegistry.Get<TextBox>("txtEngineer");
 
             txtEngineer.Text = passport.Engineer;
 
             txtEngineer.TextChanged += (s, e) =>
             {
                 passport.Engineer = txtEngineer.Text;
+            };
+
+            ComboBox cmbMaterial = ControlRegistry.Get<ComboBox>("cmbMaterial");
+
+            cmbMaterial.SelectedIndex = passport.wendtype ;
+
+            cmbMaterial.SelectedIndexChanged += (s, e) =>
+            {
+                passport.wendtype = cmbMaterial.SelectedIndex;// Text;
             };
 
             /*
@@ -131,7 +148,7 @@ namespace ElstanLab.UI
             };
             */
 
-            
+
 
 
             GroupBox gbPassport = ControlFactory.CreateGroup("Паспорт трансформатора");

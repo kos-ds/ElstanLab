@@ -235,6 +235,8 @@ namespace ElstanLab.Models
 
         public string Cooling = "ONAN";
 
+        public int wendtype = 1; // cu - 0; al - 1
+
 
         // ВН
 
@@ -272,6 +274,11 @@ namespace ElstanLab.Models
         public double P0Loss = 300;
 
         public double I0Percent = 2;
+
+        // Материал обмотки и опорная температура (ГОСТ / IEC)
+        // "Cu" = медь (Tk=235), "Al" = алюминий (Tk=225)
+        public string WindingMaterial = "Al";
+        public double ReferenceTemp = 75.0;   // °C
     }
 
     public class NoLoadSnapshot
@@ -453,9 +460,29 @@ namespace ElstanLab.Models
         //////////////////////////////////////////////////
         // Corrected
         //////////////////////////////////////////////////
+        /*
+                public double CorrectedUkPercent;
+
+                public double CorrectedLosses;
+
+                public double UkPassp;
+                public double PkPassp;
+                public double UkOtklon;
+                public double PkOtklon;
+
+                public int rowcheckid = 0;
+        */
+
+        //////////////////////////////////////////////////
+        // Corrected (по току + по температуре)
+        //////////////////////////////////////////////////
 
         public double CorrectedUkPercent;
 
+        /// <summary>Потери, приведённые к Iном (ещё без температуры)</summary>
+        public double LossesAtNominalCurrent;
+
+        /// <summary>Потери, приведённые к Iном и к опорной температуре</summary>
         public double CorrectedLosses;
 
         public double UkPassp;
@@ -463,7 +490,17 @@ namespace ElstanLab.Models
         public double UkOtklon;
         public double PkOtklon;
 
+        //////////////////////////////////////////////////
+        // Температурная коррекция
+        //////////////////////////////////////////////////
+
+        public double WindingTemp = 20.0;
+        public double ReferenceTemp = 75.0;
+        public string WindingMaterial = "Al";
+        public double TempFactor = 1.0;
+
         public int rowcheckid = 0;
+
     }
 }
 
